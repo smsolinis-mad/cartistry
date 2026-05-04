@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
+import { getUserId } from '@/lib/auth';
 import { CSVUploader, type CSVData } from '@/components/csv/CSVUploader';
 import { CSVPreview } from '@/components/csv/CSVPreview';
 
@@ -27,8 +28,8 @@ export default function ProductosPage() {
     setLoading(true);
 
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
+      const userId = getUserId();
+      if (!userId) {
         setError('Usuario no autenticado');
         return;
       }
@@ -37,7 +38,7 @@ export default function ProductosPage() {
       const { data: store, error: storeError } = await supabase
         .from('stores')
         .select('id')
-        .eq('user_id', user.id)
+        .eq('user_id', userId)
         .single();
 
       if (storeError || !store) {

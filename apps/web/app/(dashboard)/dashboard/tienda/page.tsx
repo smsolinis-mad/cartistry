@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
+import { getUserId } from '@/lib/auth';
 
 export default function TiendaPage() {
   const [step, setStep] = useState<'type' | 'details' | 'muebles'>('type');
@@ -34,8 +35,8 @@ export default function TiendaPage() {
     setLoading(true);
 
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
+      const userId = getUserId();
+      if (!userId) {
         setError('Usuario no autenticado');
         return;
       }
@@ -43,7 +44,7 @@ export default function TiendaPage() {
       const { data, error: insertError } = await supabase
         .from('stores')
         .insert({
-          user_id: user.id,
+          user_id: userId,
           nombre,
           direccion,
           tipo: storeType,
@@ -59,7 +60,7 @@ export default function TiendaPage() {
         return;
       }
 
-      // Guardar store_id en sesión/localStorage para usarlo en siguiente paso
+      // Guardar store_id en localStorage para usarlo en siguiente paso
       localStorage.setItem('current_store_id', data.id);
       setStep('muebles');
     } catch (err) {

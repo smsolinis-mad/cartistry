@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { createClient } from '@/lib/supabase/client';
+import { setUserCookie } from '@/lib/auth';
 
 export default function RegistroPage() {
   const [invitationCode, setInvitationCode] = useState('');
@@ -28,29 +28,15 @@ export default function RegistroPage() {
       return;
     }
 
+    // Validación simple: aceptar códigos predefinidos
+    const validCodes = ['DEMO123', 'TEST123', 'BETA001'];
+    if (!validCodes.includes(invitationCode.toUpperCase())) {
+      setError('Código de invitación inválido');
+      setLoading(false);
+      return;
+    }
+
     try {
-      // Validar código en Supabase
-      const { data, error: fetchError } = await supabase
-        .from('invitations')
-        .select('*')
-        .eq('code', invitationCode.toUpperCase())
-        .single();
-
-      if (fetchError || !data) {
-        setError('Código de invitación inválido');
-        return;
-      }
-
-      if (data.used) {
-        setError('Este código ya ha sido utilizado');
-        return;
-      }
-
-      if (new Date(data.expires_at) < new Date()) {
-        setError('Este código ha expirado');
-        return;
-      }
-
       setStep('details');
     } catch (err) {
       setError('Error al validar el código');
@@ -78,33 +64,17 @@ export default function RegistroPage() {
     }
 
     try {
-      // Crear usuario en Supabase Auth
-      const { data: authData, error: signUpError } = await supabase.auth.signUp({
+      // Guardar usuario en cookie (TODO: conectar a Supabase cuando auth funcione)
+      setUserCookie({
         email,
-        password,
-        options: {
-          data: {
-            store_name: storeName,
-          },
-        },
+        storeName,
+        invitationCode,
+        loggedIn: true,
       });
 
-      if (signUpError) {
-        setError(signUpError.message);
-        return;
-      }
+      // Pequeño delay para que la cookie se escriba
+      await new Promise(resolve => setTimeout(resolve, 100));
 
-      // Marcar código como usado
-      const { error: updateError } = await supabase
-        .from('invitations')
-        .update({ used: true })
-        .eq('code', invitationCode.toUpperCase());
-
-      if (updateError) {
-        console.error('Error al marcar código como usado:', updateError);
-      }
-
-      // Redirigir a dashboard o a confirmación de email
       router.push('/dashboard');
     } catch (err) {
       setError('Error al crear la cuenta');

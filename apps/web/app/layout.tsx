@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Cormorant_Garamond, Inter } from "next/font/google";
+import { AuthProvider } from "@/lib/auth-context";
 import "./globals.css";
 
 const cormorant = Cormorant_Garamond({
@@ -29,7 +30,9 @@ export default function RootLayout({
   return (
     <html lang="es">
       <body className={`${cormorant.variable} ${inter.variable} font-sans bg-cartistry-bg text-cartistry-text antialiased`}>
-        {children}
+        <AuthProvider>
+          {children}
+        </AuthProvider>
       </body>
     </html>
   );

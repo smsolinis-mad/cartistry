@@ -2,14 +2,15 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { createClient } from '@/lib/supabase/client';
+import { clearUserCookie } from '@/lib/auth';
 
 export default function DashboardPage() {
   const router = useRouter();
-  const supabase = createClient();
 
   const handleLogout = async () => {
-    await supabase.auth.signOut();
+    clearUserCookie();
+    // Pequeño delay para que la cookie se borre
+    await new Promise(resolve => setTimeout(resolve, 100));
     router.push('/');
   };
   const phases = [
