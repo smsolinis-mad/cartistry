@@ -2,6 +2,8 @@
 
 import Link from 'next/link';
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { createClient } from '@/lib/supabase/client';
 
 export default function RegistroPage() {
   const [invitationCode, setInvitationCode] = useState('');
@@ -11,34 +13,105 @@ export default function RegistroPage() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
   const [step, setStep] = useState<'code' | 'details'>('code');
+  const [loading, setLoading] = useState(false);
+  const router = useRouter();
+  const supabase = createClient();
 
   const handleSubmitCode = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setLoading(true);
+
     if (!invitationCode.trim()) {
       setError('El código de invitación es obligatorio');
+      setLoading(false);
       return;
     }
-    // TODO: Validar código contra Supabase
-    setStep('details');
+
+    try {
+      // Validar código en Supabase
+      const { data, error: fetchError } = await supabase
+        .from('invitations')
+        .select('*')
+        .eq('code', invitationCode.toUpperCase())
+        .single();
+
+      if (fetchError || !data) {
+        setError('Código de invitación inválido');
+        return;
+      }
+
+      if (data.used) {
+        setError('Este código ya ha sido utilizado');
+        return;
+      }
+
+      if (new Date(data.expires_at) < new Date()) {
+        setError('Este código ha expirado');
+        return;
+      }
+
+      setStep('details');
+    } catch (err) {
+      setError('Error al validar el código');
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleSubmitDetails = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setLoading(true);
 
     if (password !== confirmPassword) {
       setError('Las contraseñas no coinciden');
+      setLoading(false);
       return;
     }
 
     if (password.length < 8) {
       setError('La contraseña debe tener al menos 8 caracteres');
+      setLoading(false);
       return;
     }
 
-    // TODO: Crear usuario con Supabase
-    console.log('Register:', { invitationCode, email, storeName, password });
+    try {
+      // Crear usuario en Supabase Auth
+      const { data: authData, error: signUpError } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            store_name: storeName,
+          },
+        },
+      });
+
+      if (signUpError) {
+        setError(signUpError.message);
+        return;
+      }
+
+      // Marcar código como usado
+      const { error: updateError } = await supabase
+        .from('invitations')
+        .update({ used: true })
+        .eq('code', invitationCode.toUpperCase());
+
+      if (updateError) {
+        console.error('Error al marcar código como usado:', updateError);
+      }
+
+      // Redirigir a dashboard o a confirmación de email
+      router.push('/dashboard');
+    } catch (err) {
+      setError('Error al crear la cuenta');
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -83,9 +156,10 @@ export default function RegistroPage() {
 
               <button
                 type="submit"
-                className="w-full py-2 bg-cartistry-cta text-cartistry-cta-text rounded font-medium hover:opacity-90 transition"
+                disabled={loading}
+                className="w-full py-2 bg-cartistry-cta text-cartistry-cta-text rounded font-medium hover:opacity-90 transition disabled:opacity-50"
               >
-                Continuar
+                {loading ? 'Validando...' : 'Continuar'}
               </button>
             </form>
           ) : (
@@ -154,15 +228,17 @@ export default function RegistroPage() {
 
               <button
                 type="submit"
-                className="w-full py-2 bg-cartistry-cta text-cartistry-cta-text rounded font-medium hover:opacity-90 transition"
+                disabled={loading}
+                className="w-full py-2 bg-cartistry-cta text-cartistry-cta-text rounded font-medium hover:opacity-90 transition disabled:opacity-50"
               >
-                Crear cuenta
+                {loading ? 'Creando cuenta...' : 'Crear cuenta'}
               </button>
 
               <button
                 type="button"
                 onClick={() => setStep('code')}
-                className="w-full py-2 border border-cartistry-border text-cartistry-accent rounded font-medium hover:bg-cartistry-bg transition"
+                disabled={loading}
+                className="w-full py-2 border border-cartistry-border text-cartistry-accent rounded font-medium hover:bg-cartistry-bg transition disabled:opacity-50"
               >
                 ← Volver
               </button>

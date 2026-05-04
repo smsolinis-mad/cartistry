@@ -4,12 +4,9 @@
   "private": true,
   "workspaces": ["apps/*", "packages/*"],
   "scripts": {
-    "dev": "turbo run dev",
-    "build": "turbo run build",
-    "lint": "turbo run lint",
-    "type-check": "turbo run type-check"
-  },
-  "devDependencies": {
-    "turbo": "^2.0.0"
+    "dev": "cd apps/web && npm run dev",
+    "build": "cd apps/web && npm run build",
+    "lint": "cd apps/web && npm run lint",
+    "type-check": "cd apps/web && npm run type-check"
   }
 }
