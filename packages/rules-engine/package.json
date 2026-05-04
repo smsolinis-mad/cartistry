@@ -1,0 +1,15 @@
+{
+  "name": "@cartistry/rules-engine",
+  "version": "0.1.0",
+  "private": true,
+  "main": "./src/engine.ts",
+  "scripts": {
+    "type-check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@cartistry/types": "*"
+  },
+  "devDependencies": {
+    "typescript": "^5"
+  }
+}
