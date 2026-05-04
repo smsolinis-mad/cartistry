@@ -1,0 +1,112 @@
+'use client';
+
+import { useState, useRef } from 'react';
+import Papa from 'papaparse';
+
+export interface CSVData {
+  headers: string[];
+  descriptions: string[];
+  required: string[];
+  rows: Record<string, string>[];
+}
+
+interface CSVUploaderProps {
+  onDataLoaded: (data: CSVData) => void;
+  accept?: string;
+}
+
+export function CSVUploader({ onDataLoaded, accept = '.csv' }: CSVUploaderProps) {
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setError('');
+    setLoading(true);
+
+    Papa.parse(file, {
+      header: false,
+      skipEmptyLines: true,
+      complete: (results) => {
+        try {
+          const rows = results.data as string[][];
+
+          if (rows.length < 4) {
+            throw new Error('El CSV debe tener al menos 4 filas (3 de cabecera + 1 de datos)');
+          }
+
+          const headers = rows[0];
+          const descriptions = rows[1];
+          const required = rows[2];
+          const dataRows = rows.slice(3);
+
+          // Convertir datos a objeto
+          const parsedRows = dataRows.map((row) => {
+            const obj: Record<string, string> = {};
+            headers.forEach((header, i) => {
+              obj[header] = row[i] || '';
+            });
+            return obj;
+          });
+
+          onDataLoaded({
+            headers,
+            descriptions,
+            required,
+            rows: parsedRows,
+          });
+        } catch (err) {
+          setError(err instanceof Error ? err.message : 'Error al parsear el CSV');
+        } finally {
+          setLoading(false);
+        }
+      },
+      error: (error) => {
+        setError(`Error al leer el archivo: ${error.message}`);
+        setLoading(false);
+      },
+    });
+  };
+
+  return (
+    <div className="space-y-4">
+      <div
+        onClick={() => fileInputRef.current?.click()}
+        className="border-2 border-dashed border-cartistry-border rounded-lg p-8 text-center cursor-pointer hover:border-cartistry-accent hover:bg-cartistry-surface transition"
+      >
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept={accept}
+          onChange={handleFileChange}
+          disabled={loading}
+          className="hidden"
+        />
+
+        <div className="space-y-2">
+          <p className="text-sm font-medium text-cartistry-text">
+            Arrastra tu archivo aquí o haz click para seleccionar
+          </p>
+          <p className="text-xs text-cartistry-text-secondary">
+            Formato CSV, máx 3 filas de cabecera
+          </p>
+        </div>
+      </div>
+
+      {error && (
+        <div className="p-3 bg-red-50 border border-red-200 text-red-800 rounded text-sm">
+          {error}
+        </div>
+      )}
+
+      {loading && (
+        <div className="text-center text-sm text-cartistry-text-secondary">
+          Cargando archivo...
+        </div>
+      )}
+    </div>
+  );
+}
