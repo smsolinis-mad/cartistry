@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import { getUserId } from '@/lib/auth';
+import { downloadCSV, PLANTILLA_PRODUCTOS_CSV } from '@/lib/csv-download';
 import { CSVUploader, type CSVData } from '@/components/csv/CSVUploader';
 import { CSVPreview } from '@/components/csv/CSVPreview';
 
@@ -109,13 +110,32 @@ export default function ProductosPage() {
               <h2 className="text-xl font-serif font-bold text-cartistry-text mb-2">
                 Sube tu catálogo de productos
               </h2>
-              <p className="text-sm text-cartistry-text-secondary mb-6">
-                Descarga la plantilla, complétala y sube el CSV. El archivo debe tener 3 filas de cabecera:
-                nombre del campo, descripción, y tipo (obligatorio/opcional).
-              </p>
             </div>
 
-            <CSVUploader onDataLoaded={handleDataLoaded} />
+            <div className="grid md:grid-cols-2 gap-6">
+              {/* Botón de descarga */}
+              <button
+                onClick={() => downloadCSV('plantilla_productos.csv', PLANTILLA_PRODUCTOS_CSV)}
+                className="p-6 bg-cartistry-surface rounded border border-cartistry-border hover:border-cartistry-accent hover:bg-cartistry-bg transition text-left"
+              >
+                <div className="space-y-2">
+                  <p className="text-sm font-medium text-cartistry-text">
+                    📥 Descargar plantilla
+                  </p>
+                  <p className="text-xs text-cartistry-text-secondary">
+                    Descarga la plantilla, complétala y sube el CSV. El archivo debe tener 3 filas de cabecera: nombre del campo, descripción, y tipo (obligatorio/opcional).
+                  </p>
+                </div>
+              </button>
+
+              {/* Uploader */}
+              <div className="p-6 bg-cartistry-surface rounded border border-cartistry-border">
+                <p className="text-sm font-medium text-cartistry-text mb-4">
+                  📤 Sube tu catálogo
+                </p>
+                <CSVUploader onDataLoaded={handleDataLoaded} />
+              </div>
+            </div>
 
             <div className="bg-cartistry-surface rounded border border-cartistry-border p-4">
               <p className="text-xs text-cartistry-text-secondary">
