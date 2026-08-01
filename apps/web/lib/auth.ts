@@ -28,7 +28,7 @@ export function getUserId() {
   if (typeof window === 'undefined') return null;
 
   const user = getUserCookie();
-  return user?.email || user?.id || null;
+  return user?.id || null;
 }
 
 export function clearUserCookie() {

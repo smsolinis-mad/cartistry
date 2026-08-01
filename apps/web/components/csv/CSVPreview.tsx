@@ -8,6 +8,7 @@ interface CSVPreviewProps {
 }
 
 export function CSVPreview({ headers, descriptions, required, rows }: CSVPreviewProps) {
+  const visibleHeaders = headers.filter((h) => h && h.trim() !== '');
   return (
     <div className="space-y-4">
       <div>
@@ -22,23 +23,26 @@ export function CSVPreview({ headers, descriptions, required, rows }: CSVPreview
               </tr>
             </thead>
             <tbody>
-              {headers.map((header, i) => (
-                <tr key={i} className="border-b border-cartistry-border hover:bg-cartistry-surface">
-                  <td className="px-3 py-2 font-medium text-cartistry-text">{header}</td>
-                  <td className="px-3 py-2 text-cartistry-text-secondary">{descriptions[i]}</td>
-                  <td className="px-3 py-2">
-                    <span
-                      className={`text-xs px-2 py-1 rounded ${
-                        required[i] === 'obligatorio'
-                          ? 'bg-red-100 text-red-800'
-                          : 'bg-green-100 text-green-800'
-                      }`}
-                    >
-                      {required[i] === 'obligatorio' ? 'Obligatorio' : 'Opcional'}
-                    </span>
-                  </td>
-                </tr>
-              ))}
+              {headers
+                .map((header, i) => ({ header, i }))
+                .filter(({ header }) => header && header.trim() !== '')
+                .map(({ header, i }) => (
+                  <tr key={i} className="border-b border-cartistry-border hover:bg-cartistry-surface">
+                    <td className="px-3 py-2 font-medium text-cartistry-text">{header}</td>
+                    <td className="px-3 py-2 text-cartistry-text-secondary">{descriptions[i]}</td>
+                    <td className="px-3 py-2">
+                      <span
+                        className={`text-xs px-2 py-1 rounded ${
+                          required[i] === 'obligatorio'
+                            ? 'bg-red-100 text-red-800'
+                            : 'bg-green-100 text-green-800'
+                        }`}
+                      >
+                        {required[i] === 'obligatorio' ? 'Obligatorio' : 'Opcional'}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
             </tbody>
           </table>
         </div>
@@ -52,7 +56,7 @@ export function CSVPreview({ headers, descriptions, required, rows }: CSVPreview
           <table className="w-full text-xs">
             <thead>
               <tr className="border-b border-cartistry-border bg-cartistry-surface">
-                {headers.map((header, i) => (
+                {visibleHeaders.map((header, i) => (
                   <th
                     key={i}
                     className="text-left px-3 py-2 text-cartistry-accent font-medium whitespace-nowrap"
@@ -65,7 +69,7 @@ export function CSVPreview({ headers, descriptions, required, rows }: CSVPreview
             <tbody>
               {rows.slice(0, 5).map((row, i) => (
                 <tr key={i} className="border-b border-cartistry-border hover:bg-cartistry-surface">
-                  {headers.map((header, j) => (
+                  {visibleHeaders.map((header, j) => (
                     <td key={j} className="px-3 py-2 text-cartistry-text truncate max-w-xs">
                       {row[header]}
                     </td>

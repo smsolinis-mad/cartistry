@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { v5 as uuidv5 } from 'uuid';
 import { setUserCookie } from '@/lib/auth';
 
 export default function LoginPage() {
@@ -24,8 +25,11 @@ export default function LoginPage() {
         return;
       }
 
+      // Generar ID consistente basado en email
+      const userId = uuidv5(email, '6ba7b810-9dad-11d1-80b4-00c04fd430c8');
+
       // Guardar sesión en cookie
-      setUserCookie({ email, loggedIn: true });
+      setUserCookie({ id: userId, email, loggedIn: true });
 
       // Pequeño delay para que la cookie se escriba
       await new Promise(resolve => setTimeout(resolve, 100));

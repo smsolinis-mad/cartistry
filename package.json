@@ -2,11 +2,17 @@
   "name": "cartistry-mvp",
   "version": "0.1.0",
   "private": true,
-  "workspaces": ["apps/*", "packages/*"],
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
   "scripts": {
     "dev": "cd apps/web && npm run dev",
     "build": "cd apps/web && npm run build",
     "lint": "cd apps/web && npm run lint",
     "type-check": "cd apps/web && npm run type-check"
+  },
+  "dependencies": {
+    "pg": "^8.20.0"
   }
 }

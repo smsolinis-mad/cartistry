@@ -3,7 +3,9 @@
 import Link from 'next/link';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { v5 as uuidv5 } from 'uuid';
 import { setUserCookie } from '@/lib/auth';
+import { createClient } from '@/lib/supabase/client';
 
 export default function RegistroPage() {
   const [invitationCode, setInvitationCode] = useState('');
@@ -64,8 +66,12 @@ export default function RegistroPage() {
     }
 
     try {
+      // Generar ID consistente basado en email
+      const userId = uuidv5(email, '6ba7b810-9dad-11d1-80b4-00c04fd430c8');
+
       // Guardar usuario en cookie (TODO: conectar a Supabase cuando auth funcione)
       setUserCookie({
+        id: userId,
         email,
         storeName,
         invitationCode,

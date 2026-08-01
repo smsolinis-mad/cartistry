@@ -34,14 +34,25 @@ export function CSVUploader({ onDataLoaded, accept = '.csv' }: CSVUploaderProps)
         try {
           const rows = results.data as string[][];
 
-          if (rows.length < 4) {
-            throw new Error('El CSV debe tener al menos 4 filas (3 de cabecera + 1 de datos)');
+          if (rows.length < 2) {
+            throw new Error('El CSV debe tener al menos 2 filas (1 de cabecera + 1 de datos)');
           }
 
           const headers = rows[0];
-          const descriptions = rows[1];
-          const required = rows[2];
-          const dataRows = rows.slice(3);
+
+          // Detectar si el CSV usa el formato extendido (3 filas de cabecera) o
+          // el simple (1 fila de cabecera). Se considera extendido si la tercera
+          // fila contiene marcadores "obligatorio"/"opcional".
+          const thirdRow = rows[2] || [];
+          const hasExtendedHeader =
+            rows.length >= 4 &&
+            thirdRow.some(
+              (cell) => cell?.toLowerCase().trim() === 'obligatorio' || cell?.toLowerCase().trim() === 'opcional'
+            );
+
+          const descriptions = hasExtendedHeader ? rows[1] : headers.map(() => '');
+          const required = hasExtendedHeader ? rows[2] : headers.map(() => 'opcional');
+          const dataRows = hasExtendedHeader ? rows.slice(3) : rows.slice(1);
 
           // Convertir datos a objeto
           const parsedRows = dataRows.map((row) => {
@@ -89,9 +100,6 @@ export function CSVUploader({ onDataLoaded, accept = '.csv' }: CSVUploaderProps)
         <div className="space-y-2">
           <p className="text-sm font-medium text-cartistry-text">
             Arrastra tu archivo aquí o haz click para seleccionar
-          </p>
-          <p className="text-xs text-cartistry-text-secondary">
-            Formato CSV, máx 3 filas de cabecera
           </p>
         </div>
       </div>

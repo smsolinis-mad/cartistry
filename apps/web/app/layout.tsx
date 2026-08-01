@@ -19,7 +19,6 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: "Cartistry — El arte de exponer, convertido en ciencia",
   description: "Herramienta de visual merchandising para store managers",
-  lang: "es",
 };
 
 export default function RootLayout({

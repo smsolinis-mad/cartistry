@@ -8,7 +8,18 @@ export interface PlanogramPosition {
   product_id: string;
   ean: string;
   posicion_en_balda: number; // orden dentro de la balda
-  razon: string; // por qué se asignó aquí (para debug)
+  razon: string; // por qué se asignó aquí (texto humano)
+  rule_code?: string; // código de la regla que disparó la asignación (p.ej. 'ZV-07')
+}
+
+export type MovementType = 'added' | 'removed' | 'moved' | 'stayed';
+
+export interface PlanogramMovement {
+  ean: string;
+  product_id?: string;
+  type: MovementType;
+  from_balda_id?: string;
+  to_balda_id?: string;
 }
 
 export interface Planogram {

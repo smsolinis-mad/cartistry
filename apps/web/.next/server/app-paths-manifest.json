@@ -1,7 +1,0 @@
-{
-  "/(public)/page": "app/(public)/page.js",
-  "/(public)/registro/page": "app/(public)/registro/page.js",
-  "/(dashboard)/dashboard/productos/page": "app/(dashboard)/dashboard/productos/page.js",
-  "/(dashboard)/dashboard/page": "app/(dashboard)/dashboard/page.js",
-  "/(dashboard)/dashboard/tienda/page": "app/(dashboard)/dashboard/tienda/page.js"
-}
