@@ -1,9 +1,9 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import { getUserId } from '@/lib/auth';
+import { PageHeader } from '@/components/ui';
 
 interface Store {
   id: string;
@@ -295,31 +295,26 @@ export default function EquipoDatosPage() {
         value={form[campo]}
         onChange={(e) => set(campo, e.target.value)}
         placeholder={placeholder}
-        className="w-full px-3 py-2 bg-white border border-cartistry-border rounded text-sm text-cartistry-text focus:outline-none focus:ring-2 focus:ring-cartistry-accent"
+        className="w-full px-3 py-2 bg-white border border-cartistry-border rounded text-sm text-cartistry-text focus:outline-none focus:shadow-[inset_0_0_0_2px_var(--ink)]"
       />
     </div>
   );
 
   return (
-    <main className="min-h-screen bg-cartistry-bg">
-      <header className="bg-cartistry-surface border-b border-cartistry-border">
-        <div className="max-w-6xl mx-auto px-6 py-4 flex flex-wrap items-end justify-between gap-4">
-          <div>
-            <Link href="/dashboard" className="text-cartistry-accent hover:underline text-sm">
-              ← Volver
-            </Link>
-            <h1 className="text-2xl font-serif font-bold text-cartistry-text mt-2">Equipo · Datos</h1>
-          </div>
-          <button
+    <main className="px-6 py-10 lg:px-10 lg:py-12">
+
+      <div className="max-w-6xl mx-auto space-y-4">
+        <PageHeader
+          label="Equipo"
+          title="Datos"
+          actions={<><button
             onClick={abrirNuevo}
-            className="px-4 py-2 rounded text-sm font-medium bg-cartistry-cta text-cartistry-cta-text hover:opacity-90 transition"
+            className="inline-flex items-center justify-center gap-2 h-10 px-4 rounded-[2px] text-sm font-medium bg-ink text-surface hover:bg-[#282c33] transition-colors disabled:opacity-40 disabled:pointer-events-none"
           >
             + Añadir empleado
-          </button>
-        </div>
-      </header>
+          </button></>}
+        />
 
-      <div className="max-w-6xl mx-auto px-6 py-8 space-y-4">
         {error && (
           <div className="p-3 bg-red-50 border border-red-200 text-red-800 rounded text-sm">{error}</div>
         )}
@@ -416,7 +411,7 @@ export default function EquipoDatosPage() {
                   )}
                 </div>
                 <div>
-                  <label className="inline-block px-3 py-2 rounded text-sm font-medium border border-cartistry-border text-cartistry-accent hover:bg-cartistry-bg transition cursor-pointer">
+                  <label className="inline-flex items-center justify-center gap-2 h-10 px-4 rounded-[2px] text-sm font-medium bg-surface text-ink shadow-[inset_0_0_0_1px_var(--line)] hover:bg-sunk transition-colors disabled:opacity-40 disabled:pointer-events-none">
                     {subiendoFoto ? 'Subiendo...' : form.foto_url ? 'Cambiar foto' : 'Subir foto'}
                     <input
                       type="file"
@@ -453,7 +448,7 @@ export default function EquipoDatosPage() {
                     <select
                       value={form.cargo}
                       onChange={(e) => set('cargo', e.target.value)}
-                      className="w-full px-3 py-2 bg-white border border-cartistry-border rounded text-sm text-cartistry-text focus:outline-none focus:ring-2 focus:ring-cartistry-accent"
+                      className="w-full px-3 py-2 bg-white border border-cartistry-border rounded text-sm text-cartistry-text focus:outline-none focus:shadow-[inset_0_0_0_2px_var(--ink)]"
                     >
                       <option value="">— Sin cargo —</option>
                       {cargos.map((c) => (
@@ -512,7 +507,7 @@ export default function EquipoDatosPage() {
                     <select
                       value={form.store_id}
                       onChange={(e) => set('store_id', e.target.value)}
-                      className="w-full px-3 py-2 bg-white border border-cartistry-border rounded text-sm text-cartistry-text focus:outline-none focus:ring-2 focus:ring-cartistry-accent"
+                      className="w-full px-3 py-2 bg-white border border-cartistry-border rounded text-sm text-cartistry-text focus:outline-none focus:shadow-[inset_0_0_0_2px_var(--ink)]"
                     >
                       <option value="">— Sin asignar —</option>
                       {stores.map((s) => (
@@ -533,7 +528,7 @@ export default function EquipoDatosPage() {
                     <select
                       value={form.tipo_contrato}
                       onChange={(e) => set('tipo_contrato', e.target.value)}
-                      className="w-full px-3 py-2 bg-white border border-cartistry-border rounded text-sm text-cartistry-text focus:outline-none focus:ring-2 focus:ring-cartistry-accent"
+                      className="w-full px-3 py-2 bg-white border border-cartistry-border rounded text-sm text-cartistry-text focus:outline-none focus:shadow-[inset_0_0_0_2px_var(--ink)]"
                     >
                       {TIPOS_CONTRATO.map((t) => (
                         <option key={t} value={t}>
@@ -587,7 +582,7 @@ export default function EquipoDatosPage() {
                                     rel="noopener noreferrer"
                                     className="text-cartistry-accent hover:underline truncate"
                                   >
-                                    📄 {d.nombre || 'Archivo'}
+                                    {d.nombre || 'Archivo'}
                                   </a>
                                   <button
                                     type="button"
@@ -630,14 +625,14 @@ export default function EquipoDatosPage() {
                 <button
                   onClick={() => setModalAbierto(false)}
                   disabled={guardando}
-                  className="px-4 py-2 rounded text-sm font-medium border border-cartistry-border text-cartistry-accent hover:bg-cartistry-bg transition disabled:opacity-50"
+                  className="inline-flex items-center justify-center gap-2 h-10 px-4 rounded-[2px] text-sm font-medium bg-surface text-ink shadow-[inset_0_0_0_1px_var(--line)] hover:bg-sunk transition-colors disabled:opacity-40 disabled:pointer-events-none"
                 >
                   Cancelar
                 </button>
                 <button
                   onClick={guardar}
                   disabled={guardando}
-                  className="px-4 py-2 rounded text-sm font-medium bg-cartistry-cta text-cartistry-cta-text hover:opacity-90 transition disabled:opacity-50"
+                  className="inline-flex items-center justify-center gap-2 h-10 px-4 rounded-[2px] text-sm font-medium bg-ink text-surface hover:bg-[#282c33] transition-colors disabled:opacity-40 disabled:pointer-events-none"
                 >
                   {guardando ? 'Guardando...' : editandoId ? 'Guardar cambios' : 'Crear empleado'}
                 </button>

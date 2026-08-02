@@ -1,10 +1,13 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import { getUserId } from '@/lib/auth';
 import { ExportButton } from '@/components/analitica/ExportButton';
+import { PageHeader } from '@/components/ui';
+import { formatEUR as fmtEur, formatInt as fmtInt } from '@/lib/format';
+import { toISODate as toISO } from '@/lib/dates';
+import { rangoDeFechas } from '@/lib/supabase/rango';
 
 type Granularidad = 'diario' | 'semanal' | 'mensual' | 'anual' | 'personalizado';
 
@@ -41,13 +44,7 @@ interface ColeccionRow {
   numProductos: number;
 }
 
-const fmtEur = (n: number) =>
-  '€' + n.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-const fmtInt = (n: number) => n.toLocaleString('es-ES');
 
-function toISO(d: Date): string {
-  return d.toISOString().slice(0, 10);
-}
 
 function presetRange(g: Granularidad): { from: string; to: string } | null {
   if (g === 'personalizado') return null;
@@ -76,15 +73,21 @@ export default function ColeccionAnaliticaPage() {
 
   const [storeId, setStoreId] = useState<string>('');
   const [granularidad, setGranularidad] = useState<Granularidad>('mensual');
-  const [dateFrom, setDateFrom] = useState<string>('');
-  const [dateTo, setDateTo] = useState<string>('');
+  // Arrancan en el preset mensual: si empezaran vacías, el primer render
+  // pediría el histórico completo de ventas.
+  const [dateFrom, setDateFrom] = useState<string>(
+    () => presetRange('mensual')?.from ?? ''
+  );
+  const [dateTo, setDateTo] = useState<string>(() => presetRange('mensual')?.to ?? '');
   const [search, setSearch] = useState<string>('');
 
   const supabase = createClient();
 
+  // Recarga al cambiar el rango, porque el rango va en la consulta.
   useEffect(() => {
     loadData();
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dateFrom, dateTo]);
 
   useEffect(() => {
     const r = presetRange(granularidad);
@@ -130,15 +133,20 @@ export default function ColeccionAnaliticaPage() {
           .from('products')
           .select('ean, store_id, coleccion, pvp, precio_compra')
           .in('store_id', storeIds),
-        supabase
-          .from('sales')
-          .select('fecha, pvp, unidades_vendidas, numero_ticket, ean, store_id')
-          .in('store_id', storeIds),
+        // Solo el periodo que se está mirando.
+        rangoDeFechas(
+          supabase
+            .from('sales')
+            .select('fecha, pvp, unidades_vendidas, numero_ticket, ean, store_id')
+            .in('store_id', storeIds),
+          dateFrom,
+          dateTo
+        ),
       ]);
 
       setProducts((productsData as any) || []);
       setSales((salesData as any) || []);
-    } catch (err) {
+    } catch {
       setError('Error cargando datos');
     } finally {
       setLoading(false);
@@ -259,26 +267,19 @@ export default function ColeccionAnaliticaPage() {
   const hasFilters = !!(storeId || search);
 
   return (
-    <main className="min-h-screen bg-cartistry-bg">
-      <header className="bg-cartistry-surface border-b border-cartistry-border">
-        <div className="max-w-6xl mx-auto px-6 py-4 flex items-end justify-between gap-4">
-          <div>
-            <Link href="/dashboard" className="text-cartistry-accent hover:underline text-sm">
-              ← Volver
-            </Link>
-            <h1 className="text-2xl font-serif font-bold text-cartistry-text mt-2">
-              Analítica · Colección
-            </h1>
-          </div>
-          <ExportButton
+    <main className="px-6 py-10 lg:px-10 lg:py-12">
+
+      <div className="max-w-6xl mx-auto space-y-6">
+        <PageHeader
+          label="Analítica"
+          title="Colección"
+          actions={<><ExportButton
             filenameBase={`analitica_coleccion_${granularidad}`}
             headers={['Colección', 'Tienda', 'Importe (€)', 'Unidades', 'Productos', 'PVP medio (€)', 'Margen (€)', 'Tickets']}
             rows={coleccionRows.map((r) => [r.coleccion, r.storeName, r.ventas, r.unidades, r.numProductos, r.pvpMedio, r.margenTotal, r.tickets])}
-          />
-        </div>
-      </header>
+          /></>}
+        />
 
-      <div className="max-w-6xl mx-auto px-6 py-12 space-y-6">
         {loading ? (
           <p className="text-cartistry-text-secondary text-sm">Cargando...</p>
         ) : (
@@ -286,11 +287,11 @@ export default function ColeccionAnaliticaPage() {
             <div className="bg-cartistry-surface border border-cartistry-border rounded p-4">
               <div className="grid md:grid-cols-6 gap-3 items-end">
                 <div className="md:col-span-2">
-                  <label className="block text-xs text-cartistry-text-secondary mb-1">🏬 Tienda</label>
+                  <label className="eyebrow block mb-1.5">Tienda</label>
                   <select
                     value={storeId}
                     onChange={(e) => setStoreId(e.target.value)}
-                    className="w-full px-3 py-2 border border-cartistry-border rounded text-sm bg-white text-cartistry-text focus:outline-none focus:ring-2 focus:ring-cartistry-accent"
+                    className="w-full h-10 px-3 bg-surface text-ink text-sm rounded-[2px] shadow-[inset_0_0_0_1px_var(--line)] placeholder:text-ink-3 focus:outline-none focus:shadow-[inset_0_0_0_2px_var(--ink)] transition-shadow"
                   >
                     <option value="">Todas</option>
                     {stores.map((s) => (
@@ -299,11 +300,11 @@ export default function ColeccionAnaliticaPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs text-cartistry-text-secondary mb-1">📅 Periodo</label>
+                  <label className="eyebrow block mb-1.5">Periodo</label>
                   <select
                     value={granularidad}
                     onChange={(e) => setGranularidad(e.target.value as Granularidad)}
-                    className="w-full px-3 py-2 border border-cartistry-border rounded text-sm bg-white text-cartistry-text focus:outline-none focus:ring-2 focus:ring-cartistry-accent"
+                    className="w-full h-10 px-3 bg-surface text-ink text-sm rounded-[2px] shadow-[inset_0_0_0_1px_var(--line)] placeholder:text-ink-3 focus:outline-none focus:shadow-[inset_0_0_0_2px_var(--ink)] transition-shadow"
                   >
                     <option value="diario">Diario (hoy)</option>
                     <option value="semanal">Semanal (7d)</option>
@@ -313,7 +314,7 @@ export default function ColeccionAnaliticaPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs text-cartistry-text-secondary mb-1">Desde</label>
+                  <label className="eyebrow block mb-1.5">Desde</label>
                   <input
                     type="date"
                     value={dateFrom}
@@ -321,11 +322,11 @@ export default function ColeccionAnaliticaPage() {
                       setDateFrom(e.target.value);
                       setGranularidad('personalizado');
                     }}
-                    className="w-full px-3 py-2 border border-cartistry-border rounded text-sm bg-white text-cartistry-text focus:outline-none focus:ring-2 focus:ring-cartistry-accent"
+                    className="w-full h-10 px-3 bg-surface text-ink text-sm rounded-[2px] shadow-[inset_0_0_0_1px_var(--line)] placeholder:text-ink-3 focus:outline-none focus:shadow-[inset_0_0_0_2px_var(--ink)] transition-shadow"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs text-cartistry-text-secondary mb-1">Hasta</label>
+                  <label className="eyebrow block mb-1.5">Hasta</label>
                   <input
                     type="date"
                     value={dateTo}
@@ -333,14 +334,14 @@ export default function ColeccionAnaliticaPage() {
                       setDateTo(e.target.value);
                       setGranularidad('personalizado');
                     }}
-                    className="w-full px-3 py-2 border border-cartistry-border rounded text-sm bg-white text-cartistry-text focus:outline-none focus:ring-2 focus:ring-cartistry-accent"
+                    className="w-full h-10 px-3 bg-surface text-ink text-sm rounded-[2px] shadow-[inset_0_0_0_1px_var(--line)] placeholder:text-ink-3 focus:outline-none focus:shadow-[inset_0_0_0_2px_var(--ink)] transition-shadow"
                   />
                 </div>
                 <div>
                   <button
                     onClick={clearFilters}
                     disabled={!hasFilters}
-                    className="w-full px-3 py-2 border border-cartistry-border rounded text-sm text-cartistry-accent hover:bg-cartistry-bg transition disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="inline-flex items-center justify-center gap-2 h-10 px-4 rounded-[2px] text-sm font-medium bg-surface text-ink shadow-[inset_0_0_0_1px_var(--line)] hover:bg-sunk transition-colors disabled:opacity-40 disabled:pointer-events-none w-full"
                   >
                     Limpiar
                   </button>
@@ -352,7 +353,7 @@ export default function ColeccionAnaliticaPage() {
                   placeholder="🔎 Buscar colección..."
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  className="w-full px-3 py-2 border border-cartistry-border rounded text-sm bg-white text-cartistry-text focus:outline-none focus:ring-2 focus:ring-cartistry-accent"
+                  className="w-full h-10 px-3 bg-surface text-ink text-sm rounded-[2px] shadow-[inset_0_0_0_1px_var(--line)] placeholder:text-ink-3 focus:outline-none focus:shadow-[inset_0_0_0_2px_var(--ink)] transition-shadow"
                 />
               </div>
             </div>
@@ -395,17 +396,17 @@ export default function ColeccionAnaliticaPage() {
               ) : (
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
-                    <thead className="bg-cartistry-bg/50">
-                      <tr className="text-xs text-cartistry-text-secondary">
-                        <th className="text-left px-4 py-2 font-medium">Colección</th>
-                        <th className="text-left px-4 py-2 font-medium">Tienda</th>
-                        <th className="text-left px-4 py-2 font-medium">Ventas (€)</th>
-                        <th className="text-right px-4 py-2 font-medium">Importe</th>
-                        <th className="text-right px-4 py-2 font-medium">Unidades</th>
-                        <th className="text-right px-4 py-2 font-medium">Productos</th>
-                        <th className="text-right px-4 py-2 font-medium">PVP medio</th>
-                        <th className="text-right px-4 py-2 font-medium">Margen</th>
-                        <th className="text-right px-4 py-2 font-medium">Tickets</th>
+                    <thead className="bg-surface">
+                      <tr>
+                        <th className="eyebrow text-left font-normal px-4 py-2.5">Colección</th>
+                        <th className="eyebrow text-left font-normal px-4 py-2.5">Tienda</th>
+                        <th className="eyebrow text-left font-normal px-4 py-2.5">Ventas (€)</th>
+                        <th className="eyebrow text-right font-normal px-4 py-2.5">Importe</th>
+                        <th className="eyebrow text-right font-normal px-4 py-2.5">Unidades</th>
+                        <th className="eyebrow text-right font-normal px-4 py-2.5">Productos</th>
+                        <th className="eyebrow text-right font-normal px-4 py-2.5">PVP medio</th>
+                        <th className="eyebrow text-right font-normal px-4 py-2.5">Margen</th>
+                        <th className="eyebrow text-right font-normal px-4 py-2.5">Tickets</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -423,22 +424,22 @@ export default function ColeccionAnaliticaPage() {
                                 />
                               </div>
                             </td>
-                            <td className="px-4 py-2 text-right text-cartistry-text font-medium">
+                            <td className="px-4 py-2 text-right font-mono tabular-nums text-cartistry-text font-medium">
                               {fmtEur(r.ventas)}
                             </td>
-                            <td className="px-4 py-2 text-right text-cartistry-text-secondary">
+                            <td className="px-4 py-2 text-right font-mono tabular-nums text-cartistry-text-secondary">
                               {fmtInt(r.unidades)}
                             </td>
-                            <td className="px-4 py-2 text-right text-cartistry-text-secondary">
+                            <td className="px-4 py-2 text-right font-mono tabular-nums text-cartistry-text-secondary">
                               {fmtInt(r.numProductos)}
                             </td>
-                            <td className="px-4 py-2 text-right text-cartistry-text-secondary">
+                            <td className="px-4 py-2 text-right font-mono tabular-nums text-cartistry-text-secondary">
                               {fmtEur(r.pvpMedio)}
                             </td>
-                            <td className="px-4 py-2 text-right text-cartistry-text-secondary">
+                            <td className="px-4 py-2 text-right font-mono tabular-nums text-cartistry-text-secondary">
                               {fmtEur(r.margenTotal)}
                             </td>
-                            <td className="px-4 py-2 text-right text-cartistry-text-secondary">
+                            <td className="px-4 py-2 text-right font-mono tabular-nums text-cartistry-text-secondary">
                               {fmtInt(r.tickets)}
                             </td>
                           </tr>

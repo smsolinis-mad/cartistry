@@ -83,10 +83,15 @@ export function CSVUploader({ onDataLoaded, accept = '.csv' }: CSVUploaderProps)
   };
 
   return (
-    <div className="space-y-4">
-      <div
+    <div className="space-y-3">
+      <button
+        type="button"
         onClick={() => fileInputRef.current?.click()}
-        className="border-2 border-dashed border-cartistry-border rounded-lg p-8 text-center cursor-pointer hover:border-cartistry-accent hover:bg-cartistry-surface transition"
+        disabled={loading}
+        className="grid-paper w-full rounded-[2px] px-6 py-10 text-center cursor-pointer
+                   shadow-[inset_0_0_0_1px_var(--line-strong)]
+                   hover:shadow-[inset_0_0_0_2px_var(--ink)] transition-shadow
+                   disabled:opacity-50 disabled:pointer-events-none"
       >
         <input
           ref={fileInputRef}
@@ -96,25 +101,28 @@ export function CSVUploader({ onDataLoaded, accept = '.csv' }: CSVUploaderProps)
           disabled={loading}
           className="hidden"
         />
+        <p className="text-sm font-medium text-ink">
+          Arrastra tu CSV aquí o selecciónalo
+        </p>
+        <p className="font-mono text-[11px] text-ink-3 mt-1.5">
+          Una fila por producto, con EAN, precio y stock
+        </p>
+      </button>
 
-        <div className="space-y-2">
-          <p className="text-sm font-medium text-cartistry-text">
-            Arrastra tu archivo aquí o haz click para seleccionar
-          </p>
-        </div>
-      </div>
-
-      {error && (
-        <div className="p-3 bg-red-50 border border-red-200 text-red-800 rounded text-sm">
+      {error ? (
+        <div
+          role="alert"
+          className="px-3 py-2.5 rounded-[2px] text-sm shadow-[inset_0_0_0_1px_#C2402F] bg-[#fbecea] text-[#7d251b]"
+        >
           {error}
         </div>
-      )}
+      ) : null}
 
-      {loading && (
-        <div className="text-center text-sm text-cartistry-text-secondary">
-          Cargando archivo...
-        </div>
-      )}
+      {loading ? (
+        <p className="eyebrow text-center" role="status">
+          Leyendo el archivo
+        </p>
+      ) : null}
     </div>
   );
 }

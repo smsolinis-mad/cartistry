@@ -1,11 +1,11 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
-import Link from 'next/link';
 import { Coins, CreditCard, Ticket, Landmark, type LucideIcon } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { getUserId } from '@/lib/auth';
 import { isCajaAbierta } from '@/lib/caja-estado';
+import { ButtonLink, EmptyState, PageHeader } from '@/components/ui';
 
 const METODOS_PAGO: { key: string; label: string; icon: LucideIcon }[] = [
   { key: 'moneda', label: 'Moneda', icon: Coins },
@@ -248,7 +248,7 @@ export default function CajaPage() {
           ? ` · Vale ${refVale}`
           : '';
       const aviso = sinColumnas
-        ? ' ⚠️ (falta ejecutar el SQL para guardar el método de pago)'
+        ? ' · falta ejecutar el SQL para guardar el método de pago'
         : '';
       setMensaje(
         `✓ Cobro registrado · ${metodo.label} · Ticket ${ticket} · ${formatEUR(total)}${extra}${aviso}`
@@ -270,45 +270,28 @@ export default function CajaPage() {
   // Caja cerrada: no se puede cobrar
   if (cajaAbierta === false) {
     return (
-      <main className="min-h-screen bg-cartistry-bg">
-        <header className="bg-cartistry-surface border-b border-cartistry-border">
-          <div className="max-w-6xl mx-auto px-6 py-4">
-            <Link href="/dashboard/ventas" className="text-cartistry-accent hover:underline text-sm">
-              ← Volver
-            </Link>
-            <h1 className="text-2xl font-serif font-bold text-cartistry-text mt-2">Ventas · Caja</h1>
-          </div>
-        </header>
-
-        <div className="max-w-md mx-auto px-6 py-20 text-center space-y-5">
-          <div className="w-14 h-14 mx-auto rounded-full bg-cartistry-bg-secondary flex items-center justify-center">
-            <span className="text-2xl">🔒</span>
-          </div>
-          <div className="w-full py-3 rounded font-medium text-base bg-cartistry-bg-secondary text-cartistry-text-secondary border border-cartistry-border">
-            Caja cerrada · Ábrela para poder cobrar
-          </div>
-          <Link
-            href="/dashboard/ventas/apertura-cierre"
-            className="block w-full py-3 rounded font-medium text-base bg-cartistry-cta text-cartistry-cta-text hover:opacity-90 transition"
-          >
-            Ir a Apertura/Cierre
-          </Link>
+      <main className="px-6 py-10 lg:px-10 lg:py-12">
+        <div className="max-w-lg mx-auto py-16">
+          <EmptyState
+            title="La caja está cerrada"
+            description="Ábrela con el fondo de apertura y podrás empezar a cobrar."
+            action={
+              <ButtonLink href="/dashboard/ventas/apertura-cierre">Abrir la caja</ButtonLink>
+            }
+          />
         </div>
       </main>
     );
   }
 
   return (
-    <main className="min-h-screen bg-cartistry-bg">
-      <header className="bg-cartistry-surface border-b border-cartistry-border">
-        <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
-          <div>
-            <Link href="/dashboard/ventas" className="text-cartistry-accent hover:underline text-sm">
-              ← Volver
-            </Link>
-            <h1 className="text-2xl font-serif font-bold text-cartistry-text mt-2">Ventas · Caja</h1>
-          </div>
-          <div className="flex items-center gap-3">
+    <main className="px-6 py-10 lg:px-10 lg:py-12">
+
+      <div className="max-w-6xl mx-auto space-y-6">
+        <PageHeader
+          label="Ventas"
+          title="Caja"
+          actions={<><div className="flex items-center gap-3">
             {empleados.length > 0 && (
               <select
                 value={vendedor}
@@ -327,16 +310,14 @@ export default function CajaPage() {
             {lineas.length > 0 && (
               <button
                 onClick={() => setLineas([])}
-                className="px-3 py-2 rounded text-sm font-medium border border-cartistry-border text-cartistry-accent hover:bg-cartistry-bg transition"
+                className="inline-flex items-center justify-center gap-2 h-10 px-4 rounded-[2px] text-sm font-medium bg-surface text-ink shadow-[inset_0_0_0_1px_var(--line)] hover:bg-sunk transition-colors disabled:opacity-40 disabled:pointer-events-none"
               >
                 Vaciar caja
               </button>
             )}
-          </div>
-        </div>
-      </header>
+          </div></>}
+        />
 
-      <div className="max-w-6xl mx-auto px-6 py-8 space-y-6">
         {/* Buscador */}
         <div className="relative">
           <input
@@ -346,7 +327,7 @@ export default function CajaPage() {
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={onKeyDown}
             placeholder="Buscar producto por código, EAN, nombre, color, tipo…"
-            className="w-full px-4 py-3 bg-cartistry-surface border border-cartistry-border rounded text-sm text-cartistry-text focus:outline-none focus:ring-2 focus:ring-cartistry-accent"
+            className="w-full px-4 py-3 bg-cartistry-surface border border-cartistry-border rounded text-sm text-cartistry-text focus:outline-none focus:shadow-[inset_0_0_0_2px_var(--ink)]"
             autoFocus
           />
 
@@ -470,7 +451,7 @@ export default function CajaPage() {
               setMetodoModal(true);
             }}
             disabled={lineas.length === 0 || cobrando}
-            className="w-full py-3 rounded font-medium text-base bg-cartistry-cta text-cartistry-cta-text hover:opacity-90 transition disabled:opacity-50"
+            className="inline-flex items-center justify-center gap-2 h-10 px-4 rounded-[2px] text-sm font-medium bg-ink text-surface hover:bg-[#282c33] transition-colors disabled:opacity-40 disabled:pointer-events-none w-full"
           >
             {`Cobrar ${formatEUR(total)}`}
           </button>
@@ -576,7 +557,7 @@ export default function CajaPage() {
                       value={entregado}
                       onChange={(e) => setEntregado(e.target.value)}
                       placeholder="0.00"
-                      className="w-full px-4 py-3 bg-cartistry-bg border border-cartistry-border rounded text-lg text-cartistry-text focus:outline-none focus:ring-2 focus:ring-cartistry-accent"
+                      className="w-full px-4 py-3 bg-cartistry-bg border border-cartistry-border rounded text-lg text-cartistry-text focus:outline-none focus:shadow-[inset_0_0_0_2px_var(--ink)]"
                     />
                   </div>
 
@@ -614,7 +595,7 @@ export default function CajaPage() {
                   <button
                     onClick={() => cobrar({ key: 'moneda', label: 'Moneda' }, { entregado: entregadoNum, cambio })}
                     disabled={cobrando || !efectivoOk}
-                    className="w-full py-3 rounded font-medium bg-cartistry-cta text-cartistry-cta-text hover:opacity-90 transition disabled:opacity-50"
+                    className="inline-flex items-center justify-center gap-2 h-10 px-4 rounded-[2px] text-sm font-medium bg-ink text-surface hover:bg-[#282c33] transition-colors disabled:opacity-40 disabled:pointer-events-none w-full"
                   >
                     {cobrando ? 'Cobrando...' : 'Confirmar cobro'}
                   </button>
@@ -631,7 +612,7 @@ export default function CajaPage() {
                       value={codigoVale}
                       onChange={(e) => setCodigoVale(e.target.value)}
                       placeholder="Ej. VALE-000123"
-                      className="w-full px-4 py-3 bg-cartistry-bg border border-cartistry-border rounded text-sm text-cartistry-text focus:outline-none focus:ring-2 focus:ring-cartistry-accent"
+                      className="w-full px-4 py-3 bg-cartistry-bg border border-cartistry-border rounded text-sm text-cartistry-text focus:outline-none focus:shadow-[inset_0_0_0_2px_var(--ink)]"
                     />
                     <p className="text-xs text-cartistry-text-secondary mt-1">
                       Obligatorio para cobrar con vale.
@@ -641,7 +622,7 @@ export default function CajaPage() {
                   <button
                     onClick={() => cobrar({ key: 'vale', label: 'Vale' }, undefined, codigoVale.trim())}
                     disabled={cobrando || codigoVale.trim() === ''}
-                    className="w-full py-3 rounded font-medium bg-cartistry-cta text-cartistry-cta-text hover:opacity-90 transition disabled:opacity-50"
+                    className="inline-flex items-center justify-center gap-2 h-10 px-4 rounded-[2px] text-sm font-medium bg-ink text-surface hover:bg-[#282c33] transition-colors disabled:opacity-40 disabled:pointer-events-none w-full"
                   >
                     {cobrando ? 'Cobrando...' : 'Confirmar cobro'}
                   </button>

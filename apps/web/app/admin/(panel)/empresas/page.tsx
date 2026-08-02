@@ -130,7 +130,7 @@ export default function EmpresasPage() {
         </div>
         <button
           onClick={abrirModal}
-          className="px-4 py-2 rounded text-sm font-medium bg-cartistry-cta text-cartistry-cta-text hover:opacity-90 transition"
+          className="inline-flex items-center justify-center gap-2 h-10 px-4 rounded-[2px] text-sm font-medium bg-ink text-surface hover:bg-[#282c33] transition-colors disabled:opacity-40 disabled:pointer-events-none"
         >
           + Crear cliente
         </button>
@@ -253,7 +253,7 @@ export default function EmpresasPage() {
                     value={form.email}
                     onChange={(e) => setCampo('email', e.target.value)}
                     placeholder="marca@email.com"
-                    className="w-full px-3 py-2 bg-white border border-cartistry-border rounded text-sm text-cartistry-text focus:outline-none focus:ring-2 focus:ring-cartistry-accent"
+                    className="w-full px-3 py-2 bg-white border border-cartistry-border rounded text-sm text-cartistry-text focus:outline-none focus:shadow-[inset_0_0_0_2px_var(--ink)]"
                   />
                   <p className="text-[11px] text-cartistry-text-secondary mt-1">
                     Identifica a la marca (si luego entra con este email verá sus datos).
@@ -268,7 +268,7 @@ export default function EmpresasPage() {
                     value={form.nombre_empresa}
                     onChange={(e) => setCampo('nombre_empresa', e.target.value)}
                     placeholder="Mi Marca S.L."
-                    className="w-full px-3 py-2 bg-white border border-cartistry-border rounded text-sm text-cartistry-text focus:outline-none focus:ring-2 focus:ring-cartistry-accent"
+                    className="w-full px-3 py-2 bg-white border border-cartistry-border rounded text-sm text-cartistry-text focus:outline-none focus:shadow-[inset_0_0_0_2px_var(--ink)]"
                   />
                 </div>
               </div>
@@ -281,7 +281,7 @@ export default function EmpresasPage() {
                     value={form.cif}
                     onChange={(e) => setCampo('cif', e.target.value)}
                     placeholder="B12345678"
-                    className="w-full px-3 py-2 bg-white border border-cartistry-border rounded text-sm text-cartistry-text focus:outline-none focus:ring-2 focus:ring-cartistry-accent"
+                    className="w-full px-3 py-2 bg-white border border-cartistry-border rounded text-sm text-cartistry-text focus:outline-none focus:shadow-[inset_0_0_0_2px_var(--ink)]"
                   />
                 </div>
                 <div>
@@ -289,7 +289,7 @@ export default function EmpresasPage() {
                   <select
                     value={form.plan}
                     onChange={(e) => setCampo('plan', e.target.value)}
-                    className="w-full px-3 py-2 bg-white border border-cartistry-border rounded text-sm text-cartistry-text focus:outline-none focus:ring-2 focus:ring-cartistry-accent"
+                    className="w-full px-3 py-2 bg-white border border-cartistry-border rounded text-sm text-cartistry-text focus:outline-none focus:shadow-[inset_0_0_0_2px_var(--ink)]"
                   >
                     {(Object.keys(PLANES) as PlanKey[]).map((k) => (
                       <option key={k} value={k}>
@@ -309,7 +309,7 @@ export default function EmpresasPage() {
                   value={form.direccion_facturacion}
                   onChange={(e) => setCampo('direccion_facturacion', e.target.value)}
                   placeholder="C/ Mayor 12, 3º A"
-                  className="w-full px-3 py-2 bg-white border border-cartistry-border rounded text-sm text-cartistry-text focus:outline-none focus:ring-2 focus:ring-cartistry-accent"
+                  className="w-full px-3 py-2 bg-white border border-cartistry-border rounded text-sm text-cartistry-text focus:outline-none focus:shadow-[inset_0_0_0_2px_var(--ink)]"
                 />
               </div>
 
@@ -321,7 +321,7 @@ export default function EmpresasPage() {
                     value={form.codigo_postal}
                     onChange={(e) => setCampo('codigo_postal', e.target.value)}
                     placeholder="28013"
-                    className="w-full px-3 py-2 bg-white border border-cartistry-border rounded text-sm text-cartistry-text focus:outline-none focus:ring-2 focus:ring-cartistry-accent"
+                    className="w-full px-3 py-2 bg-white border border-cartistry-border rounded text-sm text-cartistry-text focus:outline-none focus:shadow-[inset_0_0_0_2px_var(--ink)]"
                   />
                 </div>
                 <div className="sm:col-span-1">
@@ -331,7 +331,7 @@ export default function EmpresasPage() {
                     value={form.ciudad}
                     onChange={(e) => setCampo('ciudad', e.target.value)}
                     placeholder="Madrid"
-                    className="w-full px-3 py-2 bg-white border border-cartistry-border rounded text-sm text-cartistry-text focus:outline-none focus:ring-2 focus:ring-cartistry-accent"
+                    className="w-full px-3 py-2 bg-white border border-cartistry-border rounded text-sm text-cartistry-text focus:outline-none focus:shadow-[inset_0_0_0_2px_var(--ink)]"
                   />
                 </div>
                 <div>
@@ -341,7 +341,7 @@ export default function EmpresasPage() {
                     value={form.provincia}
                     onChange={(e) => setCampo('provincia', e.target.value)}
                     placeholder="Madrid"
-                    className="w-full px-3 py-2 bg-white border border-cartistry-border rounded text-sm text-cartistry-text focus:outline-none focus:ring-2 focus:ring-cartistry-accent"
+                    className="w-full px-3 py-2 bg-white border border-cartistry-border rounded text-sm text-cartistry-text focus:outline-none focus:shadow-[inset_0_0_0_2px_var(--ink)]"
                   />
                 </div>
                 <div>
@@ -351,7 +351,7 @@ export default function EmpresasPage() {
                     value={form.pais}
                     onChange={(e) => setCampo('pais', e.target.value)}
                     placeholder="España"
-                    className="w-full px-3 py-2 bg-white border border-cartistry-border rounded text-sm text-cartistry-text focus:outline-none focus:ring-2 focus:ring-cartistry-accent"
+                    className="w-full px-3 py-2 bg-white border border-cartistry-border rounded text-sm text-cartistry-text focus:outline-none focus:shadow-[inset_0_0_0_2px_var(--ink)]"
                   />
                 </div>
               </div>
@@ -368,7 +368,7 @@ export default function EmpresasPage() {
                     value={form.telefono_general}
                     onChange={(e) => setCampo('telefono_general', e.target.value)}
                     placeholder="+34 600 000 000"
-                    className="w-full px-3 py-2 bg-white border border-cartistry-border rounded text-sm text-cartistry-text focus:outline-none focus:ring-2 focus:ring-cartistry-accent"
+                    className="w-full px-3 py-2 bg-white border border-cartistry-border rounded text-sm text-cartistry-text focus:outline-none focus:shadow-[inset_0_0_0_2px_var(--ink)]"
                   />
                 </div>
               </div>
@@ -386,7 +386,7 @@ export default function EmpresasPage() {
                       value={form.fact_nombre}
                       onChange={(e) => setCampo('fact_nombre', e.target.value)}
                       placeholder="Nombre"
-                      className="w-full px-3 py-2 bg-white border border-cartistry-border rounded text-sm text-cartistry-text focus:outline-none focus:ring-2 focus:ring-cartistry-accent"
+                      className="w-full px-3 py-2 bg-white border border-cartistry-border rounded text-sm text-cartistry-text focus:outline-none focus:shadow-[inset_0_0_0_2px_var(--ink)]"
                     />
                   </div>
                   <div>
@@ -396,7 +396,7 @@ export default function EmpresasPage() {
                       value={form.fact_apellido}
                       onChange={(e) => setCampo('fact_apellido', e.target.value)}
                       placeholder="Apellido"
-                      className="w-full px-3 py-2 bg-white border border-cartistry-border rounded text-sm text-cartistry-text focus:outline-none focus:ring-2 focus:ring-cartistry-accent"
+                      className="w-full px-3 py-2 bg-white border border-cartistry-border rounded text-sm text-cartistry-text focus:outline-none focus:shadow-[inset_0_0_0_2px_var(--ink)]"
                     />
                   </div>
                 </div>
@@ -408,7 +408,7 @@ export default function EmpresasPage() {
                       value={form.fact_cargo}
                       onChange={(e) => setCampo('fact_cargo', e.target.value)}
                       placeholder="Responsable de facturación"
-                      className="w-full px-3 py-2 bg-white border border-cartistry-border rounded text-sm text-cartistry-text focus:outline-none focus:ring-2 focus:ring-cartistry-accent"
+                      className="w-full px-3 py-2 bg-white border border-cartistry-border rounded text-sm text-cartistry-text focus:outline-none focus:shadow-[inset_0_0_0_2px_var(--ink)]"
                     />
                   </div>
                   <div>
@@ -418,7 +418,7 @@ export default function EmpresasPage() {
                       value={form.fact_movil}
                       onChange={(e) => setCampo('fact_movil', e.target.value)}
                       placeholder="+34 600 000 000"
-                      className="w-full px-3 py-2 bg-white border border-cartistry-border rounded text-sm text-cartistry-text focus:outline-none focus:ring-2 focus:ring-cartistry-accent"
+                      className="w-full px-3 py-2 bg-white border border-cartistry-border rounded text-sm text-cartistry-text focus:outline-none focus:shadow-[inset_0_0_0_2px_var(--ink)]"
                     />
                   </div>
                   <div>
@@ -428,7 +428,7 @@ export default function EmpresasPage() {
                       value={form.fact_email}
                       onChange={(e) => setCampo('fact_email', e.target.value)}
                       placeholder="facturacion@marca.com"
-                      className="w-full px-3 py-2 bg-white border border-cartistry-border rounded text-sm text-cartistry-text focus:outline-none focus:ring-2 focus:ring-cartistry-accent"
+                      className="w-full px-3 py-2 bg-white border border-cartistry-border rounded text-sm text-cartistry-text focus:outline-none focus:shadow-[inset_0_0_0_2px_var(--ink)]"
                     />
                   </div>
                 </div>
@@ -445,14 +445,14 @@ export default function EmpresasPage() {
               <button
                 onClick={() => setModalAbierto(false)}
                 disabled={guardando}
-                className="px-4 py-2 rounded text-sm font-medium border border-cartistry-border text-cartistry-accent hover:bg-cartistry-bg transition disabled:opacity-50"
+                className="inline-flex items-center justify-center gap-2 h-10 px-4 rounded-[2px] text-sm font-medium bg-surface text-ink shadow-[inset_0_0_0_1px_var(--line)] hover:bg-sunk transition-colors disabled:opacity-40 disabled:pointer-events-none"
               >
                 Cancelar
               </button>
               <button
                 onClick={crearCliente}
                 disabled={guardando}
-                className="px-4 py-2 rounded text-sm font-medium bg-cartistry-cta text-cartistry-cta-text hover:opacity-90 transition disabled:opacity-50"
+                className="inline-flex items-center justify-center gap-2 h-10 px-4 rounded-[2px] text-sm font-medium bg-ink text-surface hover:bg-[#282c33] transition-colors disabled:opacity-40 disabled:pointer-events-none"
               >
                 {guardando ? 'Creando...' : 'Crear cliente'}
               </button>

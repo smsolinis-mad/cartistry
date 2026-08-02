@@ -48,7 +48,7 @@ export default function EquipoPage() {
         </div>
         <button
           onClick={() => setMostrarForm((v) => !v)}
-          className="px-4 py-2 rounded text-sm font-medium bg-cartistry-cta text-cartistry-cta-text hover:opacity-90 transition"
+          className="inline-flex items-center justify-center gap-2 h-10 px-4 rounded-[2px] text-sm font-medium bg-ink text-surface hover:bg-[#282c33] transition-colors disabled:opacity-40 disabled:pointer-events-none"
         >
           {mostrarForm ? 'Cancelar' : 'Añadir miembro'}
         </button>
@@ -64,7 +64,7 @@ export default function EquipoPage() {
           <div className="bg-cartistry-surface border border-cartistry-border rounded p-4">
             <div className="grid sm:grid-cols-[1fr_1.4fr_1fr_auto] gap-4 items-end">
               <div>
-                <label className="block text-xs text-cartistry-text-secondary mb-1">Nombre</label>
+                <label className="eyebrow block mb-1.5">Nombre</label>
                 <input
                   value={nombre}
                   onChange={(e) => setNombre(e.target.value)}
@@ -73,7 +73,7 @@ export default function EquipoPage() {
                 />
               </div>
               <div>
-                <label className="block text-xs text-cartistry-text-secondary mb-1">Email</label>
+                <label className="eyebrow block mb-1.5">Email</label>
                 <input
                   type="email"
                   value={email}
@@ -83,7 +83,7 @@ export default function EquipoPage() {
                 />
               </div>
               <div>
-                <label className="block text-xs text-cartistry-text-secondary mb-1">Rol</label>
+                <label className="eyebrow block mb-1.5">Rol</label>
                 <select
                   value={rol}
                   onChange={(e) => setRol(e.target.value)}
@@ -98,7 +98,7 @@ export default function EquipoPage() {
               </div>
               <button
                 onClick={anadir}
-                className="px-4 py-2 rounded text-sm font-medium bg-cartistry-cta text-cartistry-cta-text hover:opacity-90 transition"
+                className="inline-flex items-center justify-center gap-2 h-10 px-4 rounded-[2px] text-sm font-medium bg-ink text-surface hover:bg-[#282c33] transition-colors disabled:opacity-40 disabled:pointer-events-none"
               >
                 Guardar
               </button>

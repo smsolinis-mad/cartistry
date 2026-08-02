@@ -1,11 +1,27 @@
 'use client';
 
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
-import { AlertTriangle, PackageX, TrendingDown } from 'lucide-react';
-import { clearUserCookie, getUserId } from '@/lib/auth';
+import { getUserId } from '@/lib/auth';
 import { createClient } from '@/lib/supabase/client';
+import { agruparPor } from '@/lib/agrupar';
+import { hoyLocal, parseISODate, restarDias, toISODate } from '@/lib/dates';
+import {
+  Alert,
+  Badge,
+  ButtonLink,
+  DataTable,
+  EmptyState,
+  HeatLegend,
+  Kpi,
+  KpiRow,
+  LoadingBlock,
+  PageHeader,
+  Td,
+  Th,
+  Tr,
+  heatFrom,
+} from '@/components/ui';
 
 interface StoreMetrics {
   id: string;
@@ -32,14 +48,16 @@ interface Alerta {
 const VENTANA_DIAS = 14;
 const VENTANA_ANTERIOR_DIAS = 14;
 
-function statusFromCumpl(cumpl: number): { label: string; cls: string } {
-  if (cumpl >= 85) return { label: 'OK', cls: 'bg-green-100 text-green-800 border-green-200' };
-  if (cumpl >= 60) return { label: 'Revisar', cls: 'bg-yellow-100 text-yellow-800 border-yellow-200' };
-  return { label: 'Acción', cls: 'bg-red-100 text-red-800 border-red-200' };
+/** El estado solo se enciende cuando hay algo que hacer con el lineal. */
+function estadoDeCumplimiento(
+  cumpl: number
+): { label: string; tone: 'neutral' | 'signal' | 'danger' } {
+  if (cumpl >= 85) return { label: 'Al día', tone: 'neutral' };
+  if (cumpl >= 60) return { label: 'Revisar', tone: 'signal' };
+  return { label: 'Actuar', tone: 'danger' };
 }
 
 export default function DashboardPage() {
-  const router = useRouter();
   const supabase = createClient();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -72,9 +90,21 @@ export default function DashboardPage() {
 
       const storeIds = storesData.map((s: any) => s.id);
 
+      const hoy = hoyLocal();
+      const inicioVentana = restarDias(hoy, VENTANA_DIAS);
+      const inicioVentanaAnterior = restarDias(inicioVentana, VENTANA_ANTERIOR_DIAS);
+
       const [productsRes, salesRes, planogramsRes] = await Promise.all([
         supabase.from('products').select('store_id, ean, unidades').in('store_id', storeIds),
-        supabase.from('sales').select('store_id, fecha, ean, unidades_vendidas, pvp').in('store_id', storeIds),
+        // Solo las dos ventanas que se comparan: el resto del histórico de
+        // ventas no se usa aquí y traerlo entero es la consulta más cara
+        // de la aplicación.
+        supabase
+          .from('sales')
+          .select('store_id, fecha, unidades_vendidas, pvp')
+          .in('store_id', storeIds)
+          .gte('fecha', toISODate(inicioVentanaAnterior))
+          .lte('fecha', toISODate(hoy)),
         supabase
           .from('planograms')
           .select('store_id, generado_at, datos_json')
@@ -86,23 +116,20 @@ export default function DashboardPage() {
       const sales = (salesRes.data as any[]) || [];
       const planograms = (planogramsRes.data as any[]) || [];
 
-      const hoy = new Date();
-      hoy.setHours(0, 0, 0, 0);
-      const inicioVentana = new Date(hoy);
-      inicioVentana.setDate(inicioVentana.getDate() - VENTANA_DIAS);
-      const inicioVentanaAnterior = new Date(inicioVentana);
-      inicioVentanaAnterior.setDate(inicioVentanaAnterior.getDate() - VENTANA_ANTERIOR_DIAS);
-
-      const parseFecha = (s: string): Date | null => {
-        if (!s) return null;
-        const [yy, mm, dd] = String(s).split('-').map((v) => parseInt(v, 10));
-        if (!yy || !mm || !dd) return null;
-        return new Date(yy, mm - 1, dd);
-      };
+      // Índices por tienda: un recorrido en total en lugar de uno por tienda.
+      const productsPorTienda = agruparPor(products, (p) => p.store_id);
+      const salesPorTienda = agruparPor(sales, (s) => s.store_id);
+      const ultimoPlanogramaPorTienda = new Map<string, any>();
+      for (const p of planograms) {
+        // Vienen ordenados por fecha descendente: el primero de cada tienda gana.
+        if (!ultimoPlanogramaPorTienda.has(p.store_id)) {
+          ultimoPlanogramaPorTienda.set(p.store_id, p);
+        }
+      }
 
       const storeMetrics: StoreMetrics[] = storesData.map((store: any) => {
-        const storeProducts = products.filter((p) => p.store_id === store.id);
-        const storeSales = sales.filter((s) => s.store_id === store.id);
+        const storeProducts = productsPorTienda.get(store.id) || [];
+        const storeSales = salesPorTienda.get(store.id) || [];
 
         const stockTotal = storeProducts.reduce(
           (sum, p) => sum + (Number(p.unidades) || 0),
@@ -110,7 +137,7 @@ export default function DashboardPage() {
         );
 
         const ventasVentana = storeSales.filter((s) => {
-          const f = parseFecha(s.fecha);
+          const f = parseISODate(s.fecha);
           return f !== null && f >= inicioVentana && f <= hoy;
         });
         const ventasUltimas2Semanas = ventasVentana.reduce(
@@ -124,7 +151,7 @@ export default function DashboardPage() {
 
         const ventasAnteriores = storeSales
           .filter((s) => {
-            const f = parseFecha(s.fecha);
+            const f = parseISODate(s.fecha);
             return (
               f !== null && f >= inicioVentanaAnterior && f < inicioVentana
             );
@@ -137,7 +164,7 @@ export default function DashboardPage() {
             ? (unidadesVendidas / (stockTotal + unidadesVendidas)) * 100
             : 0;
 
-        const latestPlanogram = planograms.find((p) => p.store_id === store.id);
+        const latestPlanogram = ultimoPlanogramaPorTienda.get(store.id);
         const placedEans = new Set<string>(
           latestPlanogram?.datos_json?.report_data?.assignments?.map((a: any) => a.ean) || []
         );
@@ -217,16 +244,10 @@ export default function DashboardPage() {
       setAlertas(nuevasAlertas);
     } catch (err) {
       console.error(err);
-      setError('Error al cargar el resumen');
+      setError('No se ha podido cargar el resumen. Recarga la página.');
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleLogout = async () => {
-    clearUserCookie();
-    await new Promise((resolve) => setTimeout(resolve, 100));
-    router.push('/');
   };
 
   // Agregados
@@ -245,142 +266,167 @@ export default function DashboardPage() {
       ? Math.round(stores.reduce((s, x) => s + x.cumplimientoVM, 0) / stores.length)
       : 0;
 
+
+  const hayTiendas = !loading && stores.length > 0;
+
   return (
-    <main className="min-h-screen bg-cartistry-bg">
-      <header className="bg-cartistry-surface border-b border-cartistry-border">
-        <div className="max-w-6xl mx-auto px-6 py-4">
-          <h1 className="text-2xl font-serif font-bold text-cartistry-text">Resumen</h1>
-        </div>
-      </header>
+    <main className="px-6 py-10 lg:px-10 lg:py-12">
+      <div className="max-w-6xl mx-auto">
+        <PageHeader
+          label="Tienda · Resumen"
+          title="Resumen global"
+          description={`Ventas y cumplimiento de los últimos ${VENTANA_DIAS} días en toda tu red.`}
+          actions={
+            hayTiendas ? (
+              <ButtonLink href="/dashboard/planograma" size="sm">
+                Generar planograma
+              </ButtonLink>
+            ) : null
+          }
+        />
 
-      <div className="max-w-6xl mx-auto px-6 py-12">
-        <div className="mb-8">
-          <h2 className="text-3xl font-serif font-bold text-cartistry-text mb-2">
-            Resumen global
-          </h2>
-          <p className="text-cartistry-text-secondary">Estado de tu red de tiendas</p>
-        </div>
+        {loading ? <LoadingBlock label="Leyendo tus tiendas" rows={5} /> : null}
 
-        {loading && <p className="text-cartistry-text-secondary">Cargando…</p>}
+        {error ? <Alert className="mb-6">{error}</Alert> : null}
 
-        {error && (
-          <div className="p-3 bg-red-50 border border-red-200 text-red-800 rounded text-sm mb-6">
-            {error}
-          </div>
-        )}
+        {!loading && stores.length === 0 && !error ? (
+          <EmptyState
+            title="Todavía no hay ningún espacio de venta"
+            description="Dibuja tu primera tienda —góndolas, baldas y alturas— y Cartistry podrá colocar tu surtido."
+            action={<ButtonLink href="/dashboard/tienda">Configurar mi tienda</ButtonLink>}
+          />
+        ) : null}
 
-        {!loading && stores.length === 0 && !error && (
-          <div className="bg-cartistry-surface border border-cartistry-border rounded p-8 text-center">
-            <p className="text-cartistry-text-secondary mb-4">
-              Aún no has configurado ninguna tienda.
-            </p>
-            <Link
-              href="/dashboard/tienda"
-              className="inline-block px-6 py-2 bg-cartistry-cta text-cartistry-cta-text rounded font-medium hover:opacity-90 transition"
-            >
-              Configurar primera tienda
-            </Link>
-          </div>
-        )}
-
-        {!loading && stores.length > 0 && (
+        {hayTiendas ? (
           <>
-            {/* KPI cards */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12">
-              <KpiCard label="Tiendas activas" value={totalTiendas.toString()} />
-              <KpiCard label="Ventas / m²" value={`€${ventasPorMetroAgg.toLocaleString()}`} />
-              <KpiCard label="Sell-through" value={`${sellThroughAgg}%`} />
-              <KpiCard label="Cumplimiento VM" value={`${cumplimientoAgg}%`} />
-            </div>
+            <KpiRow className="mb-10">
+              <Kpi
+                label="Tiendas activas"
+                value={totalTiendas}
+                note={`${totalMetros.toLocaleString('es-ES')} m² en total`}
+              />
+              <Kpi
+                label="Venta por m²"
+                value={ventasPorMetroAgg.toLocaleString('es-ES')}
+                unit="€"
+                note={`${VENTANA_DIAS} días`}
+              />
+              <Kpi
+                label="Sell-through"
+                value={sellThroughAgg}
+                unit="%"
+                note={`${totalUnidadesVendidas.toLocaleString('es-ES')} uds. vendidas`}
+              />
+              <Kpi
+                label="Cumplimiento VM"
+                value={cumplimientoAgg}
+                unit="%"
+                note="Media de la red"
+              />
+            </KpiRow>
 
-            {/* Estado de tiendas */}
-            <section className="mb-12">
-              <h3 className="text-xl font-serif font-bold text-cartistry-text mb-4">
-                Estado de tiendas
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {stores.map((s) => {
-                  const status = statusFromCumpl(s.cumplimientoVM);
-                  return (
-                    <div
-                      key={s.id}
-                      className="bg-cartistry-surface border border-cartistry-border rounded p-4"
-                    >
-                      <div className="flex items-start justify-between mb-2">
-                        <h4 className="text-lg font-serif font-bold text-cartistry-text">
-                          {s.nombre}
-                        </h4>
-                        <span
-                          className={`px-3 py-1 text-xs font-medium rounded-full border ${status.cls}`}
-                        >
-                          {status.label}
-                        </span>
-                      </div>
-                      <p className="text-sm text-cartistry-text-secondary">
-                        €{s.ventasPorMetro.toLocaleString()}/m² · {s.cumplimientoVM}% cumpl.
-                      </p>
-                    </div>
-                  );
-                })}
+            <section className="mb-10">
+              <div className="flex flex-wrap items-end justify-between gap-3 mb-3">
+                <h2 className="font-display font-semibold text-lg">Estado por tienda</h2>
+                <HeatLegend />
               </div>
+
+              <DataTable>
+                <thead>
+                  <tr>
+                    <Th>Tienda</Th>
+                    <Th numeric>Venta / m²</Th>
+                    <Th numeric>Sell-through</Th>
+                    <Th numeric>Cumplimiento</Th>
+                    <Th numeric>Últ. planograma</Th>
+                    <Th>Estado</Th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {stores.map((s) => {
+                    const estado = estadoDeCumplimiento(s.cumplimientoVM);
+                    return (
+                      <Tr key={s.id}>
+                        <Td>
+                          <span className="font-medium">{s.nombre}</span>
+                          <span className="font-mono text-[11px] text-ink-3 ml-2">
+                            {s.metros2} m²
+                          </span>
+                        </Td>
+                        <Td numeric>{s.ventasPorMetro.toLocaleString('es-ES')} €</Td>
+                        <Td numeric>{s.sellThrough} %</Td>
+                        <Td numeric>
+                          <span className="inline-flex items-center gap-2 justify-end">
+                            <span
+                              className="facing h-3 w-8"
+                              data-heat={heatFrom(s.cumplimientoVM)}
+                              aria-hidden
+                            />
+                            {s.cumplimientoVM} %
+                          </span>
+                        </Td>
+                        <Td numeric>
+                          {s.diasUltimoPlanograma === null
+                            ? '—'
+                            : `hace ${s.diasUltimoPlanograma} d`}
+                        </Td>
+                        <Td>
+                          <Badge tone={estado.tone}>{estado.label}</Badge>
+                        </Td>
+                      </Tr>
+                    );
+                  })}
+                </tbody>
+              </DataTable>
             </section>
 
-            {/* Alertas activas */}
             <section>
-              <h3 className="text-xl font-serif font-bold text-cartistry-text mb-4">
-                Alertas activas
-              </h3>
+              <h2 className="font-display font-semibold text-lg mb-3">
+                Qué atender ahora
+                {alertas.length > 0 ? (
+                  <span className="font-mono text-[12px] font-normal text-ink-3 ml-2">
+                    {alertas.length}
+                  </span>
+                ) : null}
+              </h2>
+
               {alertas.length === 0 ? (
-                <div className="bg-cartistry-surface border border-cartistry-border rounded p-4">
-                  <p className="text-sm text-cartistry-text-secondary">
-                    No hay alertas. Todo está en orden.
+                <div className="bg-surface rounded-[2px] shadow-[inset_0_0_0_1px_var(--line)] px-4 py-5">
+                  <p className="text-sm text-ink-2">
+                    Nada pendiente. Los planogramas están al día y no hay SKUs agotados.
                   </p>
                 </div>
               ) : (
-                <div className="bg-cartistry-surface border border-cartistry-border rounded divide-y divide-cartistry-border">
-                  {alertas.map((a, idx) => {
-                    const Icon =
-                      a.tipo === 'planograma'
-                        ? AlertTriangle
-                        : a.tipo === 'agotados'
-                        ? PackageX
-                        : TrendingDown;
-                    const iconColor =
-                      a.tipo === 'planograma'
-                        ? 'text-red-600'
-                        : a.tipo === 'agotados'
-                        ? 'text-amber-600'
-                        : 'text-orange-600';
-                    return (
-                      <div key={idx} className="flex items-center justify-between p-4 gap-4">
-                        <div className="flex items-center gap-3 flex-1 min-w-0">
-                          <Icon size={18} className={`${iconColor} flex-shrink-0`} />
-                          <p className="text-sm text-cartistry-text">{a.mensaje}</p>
-                        </div>
-                        <Link
-                          href={a.href}
-                          className="text-sm text-cartistry-accent hover:underline flex-shrink-0"
-                        >
-                          Ver →
-                        </Link>
+                <ul className="bg-surface rounded-[2px] shadow-[inset_0_0_0_1px_var(--line)] divide-y divide-line">
+                  {alertas.map((a, idx) => (
+                    <li
+                      key={idx}
+                      className="flex items-center justify-between gap-4 px-4 py-3"
+                    >
+                      <div className="flex items-center gap-3 min-w-0">
+                        <Badge tone={a.tipo === 'agotados' ? 'danger' : 'signal'}>
+                          {a.tipo === 'planograma'
+                            ? 'Lineal'
+                            : a.tipo === 'agotados'
+                              ? 'Stock'
+                              : 'Venta'}
+                        </Badge>
+                        <p className="text-sm text-ink truncate">{a.mensaje}</p>
                       </div>
-                    );
-                  })}
-                </div>
+                      <Link
+                        href={a.href}
+                        className="text-[13px] text-ink underline underline-offset-4 shrink-0"
+                      >
+                        Resolver
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
               )}
             </section>
           </>
-        )}
+        ) : null}
       </div>
     </main>
-  );
-}
-
-function KpiCard({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="bg-cartistry-surface border border-cartistry-border rounded p-5">
-      <p className="text-sm text-cartistry-text-secondary mb-2">{label}</p>
-      <p className="text-3xl font-serif font-bold text-cartistry-text">{value}</p>
-    </div>
   );
 }

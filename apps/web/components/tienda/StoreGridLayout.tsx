@@ -1,8 +1,17 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { PDFDownloadLink } from '@react-pdf/renderer';
-import { BlankGridPdf } from './BlankGridPdf';
+import dynamic from 'next/dynamic';
+
+// El motor de PDF pesa ~550 kB: se carga al pulsar, no al abrir la página.
+const BlankGridPdfLink = dynamic(() => import('./BlankGridPdfLink'), {
+  ssr: false,
+  loading: () => (
+    <span className="inline-flex items-center h-8 px-3 rounded-[2px] text-[13px] font-medium bg-sunk text-ink-3">
+      Generando…
+    </span>
+  ),
+});
 import {
   columnLetter,
   parseRange,
@@ -104,7 +113,7 @@ export function StoreGridLayout({
   }, [muebles, editingMuebleId, pendingPosicion, cols, rows]);
 
   // 2) Detectar solapamientos celda a celda.
-  const { coveredBy, overlapCells } = useMemo(() => {
+  const overlapCells = useMemo(() => {
     const cov = new Map<string, string[]>(); // cellKey → muebleIds
     const overlaps = new Set<string>();
     for (const p of placed) {
@@ -116,7 +125,7 @@ export function StoreGridLayout({
         if (list.length > 1) overlaps.add(key);
       }
     }
-    return { coveredBy: cov, overlapCells: overlaps };
+    return overlaps;
   }, [placed]);
 
   const hasOverlaps = overlapCells.size > 0;
@@ -182,7 +191,7 @@ export function StoreGridLayout({
                   : 'text-cartistry-text-secondary hover:text-cartistry-text'
               }`}
             >
-              📦 Muebles
+              Muebles
             </button>
             <button
               type="button"
@@ -230,26 +239,18 @@ export function StoreGridLayout({
               className="w-16 px-2 py-1 border border-cartistry-border rounded text-sm"
             />
           </div>
-          <PDFDownloadLink
-            document={<BlankGridPdf storeName={storeName} cols={cols} rows={rows} />}
+          <BlankGridPdfLink
+            storeName={storeName}
+            cols={cols}
+            rows={rows}
             fileName={fileName}
-          >
-            {({ loading }) => (
-              <button
-                type="button"
-                disabled={loading}
-                className="px-3 py-1.5 text-xs border border-cartistry-border bg-white text-cartistry-text rounded hover:bg-cartistry-bg transition disabled:opacity-50"
-              >
-                {loading ? 'Generando…' : '📥 Plantilla PDF'}
-              </button>
-            )}
-          </PDFDownloadLink>
+          />
         </div>
       </div>
 
       {hasOverlaps && (
         <div className="mb-3 px-3 py-2 bg-red-50 border border-red-300 rounded text-xs text-red-800">
-          ⚠️ Hay celdas con dos o más muebles solapados. Reasigna alguna posición para evitar conflictos.
+          Hay celdas con dos o más muebles solapados. Reasigna alguna posición para evitar conflictos.
         </div>
       )}
 
@@ -376,10 +377,10 @@ export function StoreGridLayout({
               <div className="font-bold truncate">{p.mueble.nombre}</div>
               <div className="text-[9px] opacity-70 font-mono">{pos}</div>
               {p.mueble.es_escaparate && (
-                <div className="text-[8px] mt-0.5">⭐ escaparate</div>
+                <div className="text-[8px] mt-0.5">escaparate</div>
               )}
               {p.mueble.es_zona_caja && (
-                <div className="text-[8px] mt-0.5">💰 caja</div>
+                <div className="text-[8px] mt-0.5">caja</div>
               )}
             </button>
           );

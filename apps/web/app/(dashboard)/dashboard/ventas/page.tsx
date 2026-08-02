@@ -2,12 +2,12 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import { getUserId } from '@/lib/auth';
 import { downloadCSV, PLANTILLA_VENTAS_CSV } from '@/lib/csv-download';
 import { CSVUploader, type CSVData } from '@/components/csv/CSVUploader';
 import { CSVPreview } from '@/components/csv/CSVPreview';
+import { PageHeader } from '@/components/ui';
 
 interface Sale {
   id: string;
@@ -240,7 +240,7 @@ export default function VentasPage() {
       if (duplicadosEnCSV.length > 0) avisos.push(`${duplicadosEnCSV.length} duplicadas dentro del CSV`);
       if (duplicadosEnBD.length > 0) avisos.push(`${duplicadosEnBD.length} ya existentes en la base de datos`);
       if (avisos.length > 0) {
-        setError(`⚠️ Se omitieron: ${avisos.join(' · ')}. Se importarán ${finalSales.length} ventas nuevas.`);
+        setError(`Se omitieron: ${avisos.join(' · ')}. Se importarán ${finalSales.length} ventas nuevas.`);
       }
 
       if (finalSales.length === 0) {
@@ -296,19 +296,15 @@ export default function VentasPage() {
   };
 
   return (
-    <main className="min-h-screen bg-cartistry-bg">
-      <header className="bg-cartistry-surface border-b border-cartistry-border">
-        <div className="max-w-6xl mx-auto px-6 py-4">
-          <Link href="/dashboard" className="text-cartistry-accent hover:underline text-sm">
-            ← Volver
-          </Link>
-          <h1 className="text-2xl font-serif font-bold text-cartistry-text mt-2">
-            Fase 3: Datos de ventas
-          </h1>
-        </div>
-      </header>
+    <main className="px-6 py-10 lg:px-10 lg:py-12">
 
-      <div className="max-w-6xl mx-auto px-6 py-12">
+      <div className="max-w-6xl mx-auto">
+        <PageHeader
+          label="Datos"
+          title="Ventas"
+          description="Sube las ventas de la semana para que el planograma se recalcule con datos reales."
+        />
+
         {step === 'upload' && (
           <div className="space-y-6">
             <div>
@@ -324,14 +320,14 @@ export default function VentasPage() {
                 className="p-6 bg-cartistry-surface rounded border border-cartistry-border hover:border-cartistry-accent hover:bg-cartistry-bg transition text-left"
               >
                 <p className="text-sm font-medium text-cartistry-text">
-                  📥 Descargar plantilla CSV
+                  Descargar plantilla
                 </p>
               </button>
 
               {/* Uploader */}
               <div className="p-6 bg-cartistry-surface rounded border border-cartistry-border">
                 <p className="text-sm font-medium text-cartistry-text mb-4">
-                  📤 Sube tus ventas
+                  Sube tus ventas
                 </p>
                 <CSVUploader onDataLoaded={handleDataLoaded} />
               </div>
@@ -349,9 +345,9 @@ export default function VentasPage() {
                       </h3>
                       <button
                         onClick={() => exportSalesToCSV(sales)}
-                        className="px-4 py-2 bg-cartistry-cta text-cartistry-cta-text rounded text-sm font-medium hover:opacity-90 transition"
+                        className="inline-flex items-center justify-center gap-2 h-10 px-4 rounded-[2px] text-sm font-medium bg-ink text-surface hover:bg-[#282c33] transition-colors disabled:opacity-40 disabled:pointer-events-none"
                       >
-                        📤 Exportar datos
+                        Exportar datos
                       </button>
                     </div>
                     <div className="space-y-2">
@@ -414,14 +410,14 @@ export default function VentasPage() {
               <button
                 onClick={() => setStep('upload')}
                 disabled={loading}
-                className="px-6 py-2 border border-cartistry-border text-cartistry-accent rounded font-medium hover:bg-cartistry-bg transition disabled:opacity-50"
+                className="inline-flex items-center justify-center gap-2 h-10 px-4 rounded-[2px] text-sm font-medium bg-surface text-ink shadow-[inset_0_0_0_1px_var(--line)] hover:bg-sunk transition-colors disabled:opacity-40 disabled:pointer-events-none"
               >
                 ← Volver
               </button>
               <button
                 onClick={handleConfirm}
                 disabled={loading}
-                className="px-6 py-2 bg-cartistry-cta text-cartistry-cta-text rounded font-medium hover:opacity-90 transition disabled:opacity-50"
+                className="inline-flex items-center justify-center gap-2 h-10 px-4 rounded-[2px] text-sm font-medium bg-ink text-surface hover:bg-[#282c33] transition-colors disabled:opacity-40 disabled:pointer-events-none"
               >
                 {loading ? `Guardando ${csvData.rows.length} ventas...` : 'Confirmar y guardar'}
               </button>
@@ -442,7 +438,7 @@ export default function VentasPage() {
 
             <button
               onClick={() => router.push('/dashboard')}
-              className="px-6 py-2 bg-cartistry-cta text-cartistry-cta-text rounded font-medium hover:opacity-90 transition"
+              className="inline-flex items-center justify-center gap-2 h-10 px-4 rounded-[2px] text-sm font-medium bg-ink text-surface hover:bg-[#282c33] transition-colors disabled:opacity-40 disabled:pointer-events-none"
             >
               Continuar
             </button>

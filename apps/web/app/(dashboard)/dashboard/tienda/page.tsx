@@ -2,11 +2,11 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import { getUserId } from '@/lib/auth';
 import { StoreGridLayout } from '@/components/tienda/StoreGridLayout';
 import { isValidPosition, parseRange, buildRangeString } from '@/lib/grid-pos';
+import { Button, EmptyState, PageHeader } from '@/components/ui';
 
 interface Store {
   id: string;
@@ -37,7 +37,6 @@ export default function TiendaPage() {
   const [selectedStore, setSelectedStore] = useState<Store | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  const [storeFullData, setStoreFullData] = useState<any>(null);
   const [muebles, setMuebles] = useState<any[]>([]);
   const [editingMuebleIndex, setEditingMuebleIndex] = useState<number | null>(null);
   const [addingNewMueble, setAddingNewMueble] = useState(false);
@@ -157,9 +156,7 @@ export default function TiendaPage() {
         console.error('Error cargando muebles:', muesError);
       }
 
-      setStoreFullData(fullData);
       setMuebles(muesData || []);
-      console.log('Muebles cargados:', muesData);
       setSelectedStore(store);
       setNombre(fullData.nombre);
       setDireccion(fullData.direccion);
@@ -221,7 +218,7 @@ export default function TiendaPage() {
       setSelectedStore(null);
       loadStores();
       setStep('select');
-    } catch (err) {
+    } catch {
       setError('Error al borrar la tienda');
     } finally {
       setLoading(false);
@@ -365,36 +362,34 @@ export default function TiendaPage() {
   };
 
   return (
-    <main className="min-h-screen bg-cartistry-bg">
-      <header className="bg-cartistry-surface border-b border-cartistry-border">
-        <div className="max-w-4xl mx-auto px-6 py-4">
-          <Link href="/dashboard" className="text-cartistry-accent hover:underline text-sm">
-            ← Volver
-          </Link>
-          <h1 className="text-2xl font-serif font-bold text-cartistry-text mt-2">
-            Fase 1: Configurar espacio de venta
-          </h1>
-        </div>
-      </header>
+    <main className="px-6 py-10 lg:px-10 lg:py-12">
 
-      <div className="max-w-4xl mx-auto px-6 py-12">
+      <div className="max-w-4xl mx-auto">
+        <PageHeader
+          label="Tienda"
+          title="Espacio de venta"
+          description="Dibuja góndolas, islas o corners con sus baldas y alturas. Es la base sobre la que se coloca el surtido."
+        />
+
         {/* Step 0: Select Store */}
         {step === 'select' && (
           <div className="space-y-6">
-            <div>
-              <h2 className="text-xl font-serif font-bold text-cartistry-text mb-4">
-                Mis tiendas
-              </h2>
-              {stores.length > 0 ? (
-                <p className="text-sm text-cartistry-text-secondary mb-4">
-                  Selecciona una tienda existente o crea una nueva.
+            {stores.length === 0 ? (
+              <EmptyState
+                title="Todavía no has dibujado ningún espacio"
+                description="Empieza por una góndola, una isla o una tienda completa. Solo tendrás que hacerlo una vez."
+                action={
+                  <Button onClick={handleCreateNew}>Dibujar mi primer espacio</Button>
+                }
+              />
+            ) : (
+              <div>
+                <h2 className="text-lg font-display font-semibold text-ink">Mis tiendas</h2>
+                <p className="text-sm text-ink-2 mt-1">
+                  Elige la tienda sobre la que quieres trabajar.
                 </p>
-              ) : (
-                <p className="text-sm text-cartistry-text-secondary mb-4">
-                  No tienes tiendas configuradas. Crea una nueva.
-                </p>
-              )}
-            </div>
+              </div>
+            )}
 
             {stores.length > 0 && (
               <div className="grid md:grid-cols-2 gap-4 mb-6">
@@ -419,13 +414,13 @@ export default function TiendaPage() {
                     <div className="flex gap-2">
                       <button
                         onClick={() => handleSelectStore(store)}
-                        className="flex-1 px-3 py-1 text-sm bg-cartistry-cta text-cartistry-cta-text rounded hover:opacity-90 transition"
+                        className="inline-flex items-center justify-center gap-2 h-10 px-4 rounded-[2px] text-sm font-medium bg-ink text-surface hover:bg-[#282c33] transition-colors disabled:opacity-40 disabled:pointer-events-none flex-1"
                       >
                         Seleccionar
                       </button>
                       <button
                         onClick={() => handleEditStore(store)}
-                        className="flex-1 px-3 py-1 text-sm border border-cartistry-border text-cartistry-accent rounded hover:bg-cartistry-bg transition"
+                        className="inline-flex items-center justify-center gap-2 h-10 px-4 rounded-[2px] text-sm font-medium bg-surface text-ink shadow-[inset_0_0_0_1px_var(--line)] hover:bg-sunk transition-colors disabled:opacity-40 disabled:pointer-events-none flex-1"
                       >
                         Editar
                       </button>
@@ -444,12 +439,11 @@ export default function TiendaPage() {
               </div>
             )}
 
-            <button
-              onClick={handleCreateNew}
-              className="px-6 py-2 bg-cartistry-cta text-cartistry-cta-text rounded font-medium hover:opacity-90 transition"
-            >
-              + Crear nueva tienda
-            </button>
+            {stores.length > 0 ? (
+              <Button variant="secondary" onClick={handleCreateNew}>
+                Añadir otra tienda
+              </Button>
+            ) : null}
           </div>
         )}
 
@@ -530,91 +524,91 @@ export default function TiendaPage() {
               )}
 
               <div>
-                <label className="block text-sm font-medium text-cartistry-text mb-2">
+                <label className="eyebrow block mb-1.5 text-ink-2">
                   Nombre de la tienda *
                 </label>
                 <input
                   type="text"
                   value={nombre}
                   onChange={(e) => setNombre(e.target.value)}
-                  className="w-full px-4 py-2 border border-cartistry-border rounded text-sm bg-white text-cartistry-text focus:outline-none focus:ring-2 focus:ring-cartistry-accent"
+                  className="w-full px-4 py-2 border border-cartistry-border rounded text-sm bg-white text-cartistry-text focus:outline-none focus:shadow-[inset_0_0_0_2px_var(--ink)]"
                   placeholder="Mi tienda"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-cartistry-text mb-2">
+                <label className="eyebrow block mb-1.5 text-ink-2">
                   Dirección *
                 </label>
                 <input
                   type="text"
                   value={direccion}
                   onChange={(e) => setDireccion(e.target.value)}
-                  className="w-full px-4 py-2 border border-cartistry-border rounded text-sm bg-white text-cartistry-text focus:outline-none focus:ring-2 focus:ring-cartistry-accent"
+                  className="w-full px-4 py-2 border border-cartistry-border rounded text-sm bg-white text-cartistry-text focus:outline-none focus:shadow-[inset_0_0_0_2px_var(--ink)]"
                   placeholder="Calle, número, ciudad"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-cartistry-text mb-2">
+                <label className="eyebrow block mb-1.5 text-ink-2">
                   Provincia
                 </label>
                 <input
                   type="text"
                   value={provincia}
                   onChange={(e) => setProvincia(e.target.value)}
-                  className="w-full px-4 py-2 border border-cartistry-border rounded text-sm bg-white text-cartistry-text focus:outline-none focus:ring-2 focus:ring-cartistry-accent"
+                  className="w-full px-4 py-2 border border-cartistry-border rounded text-sm bg-white text-cartistry-text focus:outline-none focus:shadow-[inset_0_0_0_2px_var(--ink)]"
                   placeholder="Madrid"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-cartistry-text mb-2">
+                <label className="eyebrow block mb-1.5 text-ink-2">
                   País
                 </label>
                 <input
                   type="text"
                   value={pais}
                   onChange={(e) => setPais(e.target.value)}
-                  className="w-full px-4 py-2 border border-cartistry-border rounded text-sm bg-white text-cartistry-text focus:outline-none focus:ring-2 focus:ring-cartistry-accent"
+                  className="w-full px-4 py-2 border border-cartistry-border rounded text-sm bg-white text-cartistry-text focus:outline-none focus:shadow-[inset_0_0_0_2px_var(--ink)]"
                   placeholder="España"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-cartistry-text mb-2">
+                <label className="eyebrow block mb-1.5 text-ink-2">
                   Metros cuadrados *
                 </label>
                 <input
                   type="number"
                   value={metros2}
                   onChange={(e) => setMetros2(e.target.value)}
-                  className="w-full px-4 py-2 border border-cartistry-border rounded text-sm bg-white text-cartistry-text focus:outline-none focus:ring-2 focus:ring-cartistry-accent"
+                  className="w-full px-4 py-2 border border-cartistry-border rounded text-sm bg-white text-cartistry-text focus:outline-none focus:shadow-[inset_0_0_0_2px_var(--ink)]"
                   placeholder="50"
                   step="0.1"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-cartistry-text mb-2">
+                <label className="eyebrow block mb-1.5 text-ink-2">
                   Fecha de apertura *
                 </label>
                 <input
                   type="date"
                   value={fechaApertura}
                   onChange={(e) => setFechaApertura(e.target.value)}
-                  className="w-full px-4 py-2 border border-cartistry-border rounded text-sm bg-white text-cartistry-text focus:outline-none focus:ring-2 focus:ring-cartistry-accent"
+                  className="w-full px-4 py-2 border border-cartistry-border rounded text-sm bg-white text-cartistry-text focus:outline-none focus:shadow-[inset_0_0_0_2px_var(--ink)]"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-cartistry-text mb-2">
+                <label className="eyebrow block mb-1.5 text-ink-2">
                   Categoría de venta *
                 </label>
                 <select
                   value={categoriaVenta}
                   onChange={(e) => setCategoriaVenta(e.target.value as 'boutique' | 'supermercado' | 'fast_fashion')}
-                  className="w-full px-4 py-2 border border-cartistry-border rounded text-sm bg-white text-cartistry-text focus:outline-none focus:ring-2 focus:ring-cartistry-accent"
+                  className="w-full px-4 py-2 border border-cartistry-border rounded text-sm bg-white text-cartistry-text focus:outline-none focus:shadow-[inset_0_0_0_2px_var(--ink)]"
                 >
                   <option value="boutique">Boutique / Tienda de lujo</option>
                   <option value="supermercado">Supermercado / Bazar</option>
@@ -623,7 +617,7 @@ export default function TiendaPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-cartistry-text mb-2">
+                <label className="eyebrow block mb-1.5 text-ink-2">
                   Máximo de SKUs por hueco *
                 </label>
                 <p className="text-xs text-cartistry-text-secondary mb-2">
@@ -632,7 +626,7 @@ export default function TiendaPage() {
                 <select
                   value={maxSkusPorHueco}
                   onChange={(e) => setMaxSkusPorHueco(parseInt(e.target.value))}
-                  className="w-full px-4 py-2 border border-cartistry-border rounded text-sm bg-white text-cartistry-text focus:outline-none focus:ring-2 focus:ring-cartistry-accent"
+                  className="w-full px-4 py-2 border border-cartistry-border rounded text-sm bg-white text-cartistry-text focus:outline-none focus:shadow-[inset_0_0_0_2px_var(--ink)]"
                 >
                   <option value={1}>1 SKU por hueco (boutique premium)</option>
                   <option value={2}>2 SKUs por hueco</option>
@@ -652,14 +646,14 @@ export default function TiendaPage() {
                       setIsEditing(false);
                       setEditStep('datos');
                     }}
-                    className="px-6 py-2 border border-cartistry-border text-cartistry-accent rounded font-medium hover:bg-cartistry-bg transition"
+                    className="inline-flex items-center justify-center gap-2 h-10 px-4 rounded-[2px] text-sm font-medium bg-surface text-ink shadow-[inset_0_0_0_1px_var(--line)] hover:bg-sunk transition-colors disabled:opacity-40 disabled:pointer-events-none"
                   >
                     Cancelar
                   </button>
                   <button
                     type="submit"
                     disabled={loading}
-                    className="px-6 py-2 bg-cartistry-cta text-cartistry-cta-text rounded font-medium hover:opacity-90 transition disabled:opacity-50"
+                    className="inline-flex items-center justify-center gap-2 h-10 px-4 rounded-[2px] text-sm font-medium bg-ink text-surface hover:bg-[#282c33] transition-colors disabled:opacity-40 disabled:pointer-events-none"
                   >
                     {loading ? 'Guardando...' : 'Guardar'}
                   </button>
@@ -727,7 +721,7 @@ export default function TiendaPage() {
                           <div className="flex gap-2">
                             <button
                               onClick={() => setEditingMuebleIndex(idx)}
-                              className="px-3 py-1 text-xs bg-cartistry-cta text-cartistry-cta-text rounded hover:opacity-90"
+                              className="inline-flex items-center justify-center gap-2 h-10 px-4 rounded-[2px] text-sm font-medium bg-ink text-surface hover:bg-[#282c33] transition-colors disabled:opacity-40 disabled:pointer-events-none"
                             >
                               Editar
                             </button>
@@ -754,7 +748,7 @@ export default function TiendaPage() {
                     </p>
                     <button
                       onClick={() => setAddingNewMueble(true)}
-                      className="px-4 py-2 text-sm bg-cartistry-cta text-cartistry-cta-text rounded hover:opacity-90"
+                      className="inline-flex items-center justify-center gap-2 h-10 px-4 rounded-[2px] text-sm font-medium bg-ink text-surface hover:bg-[#282c33] transition-colors disabled:opacity-40 disabled:pointer-events-none"
                     >
                       + Agregar primer mueble
                     </button>
@@ -764,7 +758,7 @@ export default function TiendaPage() {
                 {muebles.length > 0 && !addingNewMueble && (
                   <button
                     onClick={() => setAddingNewMueble(true)}
-                    className="px-4 py-2 text-sm bg-cartistry-cta text-cartistry-cta-text rounded hover:opacity-90"
+                    className="inline-flex items-center justify-center gap-2 h-10 px-4 rounded-[2px] text-sm font-medium bg-ink text-surface hover:bg-[#282c33] transition-colors disabled:opacity-40 disabled:pointer-events-none"
                   >
                     + Agregar otro mueble
                   </button>
@@ -773,7 +767,6 @@ export default function TiendaPage() {
                 {editingMuebleIndex !== null && (
                   <MuebleEditForm
                     mueble={muebles[editingMuebleIndex]}
-                    storeType={storeType}
                     posicionOverride={pendingPosicion ?? undefined}
                     onPosicionLocalChange={(p) => setPendingPosicion(p)}
                     onSave={async (updatedMueble) => {
@@ -795,7 +788,6 @@ export default function TiendaPage() {
 
                 {addingNewMueble && (
                   <MuebleNewForm
-                    storeType={storeType}
                     storeId={selectedStore?.id || ''}
                     onSave={async (newMueble) => {
                       const { data, error } = await supabase
@@ -820,7 +812,7 @@ export default function TiendaPage() {
                   <button
                     type="button"
                     onClick={() => setEditStep('datos')}
-                    className="px-6 py-2 border border-cartistry-border text-cartistry-accent rounded font-medium hover:bg-cartistry-bg transition"
+                    className="inline-flex items-center justify-center gap-2 h-10 px-4 rounded-[2px] text-sm font-medium bg-surface text-ink shadow-[inset_0_0_0_1px_var(--line)] hover:bg-sunk transition-colors disabled:opacity-40 disabled:pointer-events-none"
                   >
                     ← Anterior
                   </button>
@@ -828,7 +820,7 @@ export default function TiendaPage() {
                     type="button"
                     onClick={handleDetailsSubmit}
                     disabled={loading}
-                    className="px-6 py-2 bg-cartistry-cta text-cartistry-cta-text rounded font-medium hover:opacity-90 transition disabled:opacity-50"
+                    className="inline-flex items-center justify-center gap-2 h-10 px-4 rounded-[2px] text-sm font-medium bg-ink text-surface hover:bg-[#282c33] transition-colors disabled:opacity-40 disabled:pointer-events-none"
                   >
                     {loading ? 'Guardando...' : '✓ Guardar cambios'}
                   </button>
@@ -854,91 +846,91 @@ export default function TiendaPage() {
               )}
 
               <div>
-                <label className="block text-sm font-medium text-cartistry-text mb-2">
+                <label className="eyebrow block mb-1.5 text-ink-2">
                   Nombre de la tienda *
                 </label>
                 <input
                   type="text"
                   value={nombre}
                   onChange={(e) => setNombre(e.target.value)}
-                  className="w-full px-4 py-2 border border-cartistry-border rounded text-sm bg-white text-cartistry-text focus:outline-none focus:ring-2 focus:ring-cartistry-accent"
+                  className="w-full px-4 py-2 border border-cartistry-border rounded text-sm bg-white text-cartistry-text focus:outline-none focus:shadow-[inset_0_0_0_2px_var(--ink)]"
                   placeholder="Mi tienda"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-cartistry-text mb-2">
+                <label className="eyebrow block mb-1.5 text-ink-2">
                   Dirección *
                 </label>
                 <input
                   type="text"
                   value={direccion}
                   onChange={(e) => setDireccion(e.target.value)}
-                  className="w-full px-4 py-2 border border-cartistry-border rounded text-sm bg-white text-cartistry-text focus:outline-none focus:ring-2 focus:ring-cartistry-accent"
+                  className="w-full px-4 py-2 border border-cartistry-border rounded text-sm bg-white text-cartistry-text focus:outline-none focus:shadow-[inset_0_0_0_2px_var(--ink)]"
                   placeholder="Calle, número, ciudad"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-cartistry-text mb-2">
+                <label className="eyebrow block mb-1.5 text-ink-2">
                   Provincia
                 </label>
                 <input
                   type="text"
                   value={provincia}
                   onChange={(e) => setProvincia(e.target.value)}
-                  className="w-full px-4 py-2 border border-cartistry-border rounded text-sm bg-white text-cartistry-text focus:outline-none focus:ring-2 focus:ring-cartistry-accent"
+                  className="w-full px-4 py-2 border border-cartistry-border rounded text-sm bg-white text-cartistry-text focus:outline-none focus:shadow-[inset_0_0_0_2px_var(--ink)]"
                   placeholder="Madrid"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-cartistry-text mb-2">
+                <label className="eyebrow block mb-1.5 text-ink-2">
                   País
                 </label>
                 <input
                   type="text"
                   value={pais}
                   onChange={(e) => setPais(e.target.value)}
-                  className="w-full px-4 py-2 border border-cartistry-border rounded text-sm bg-white text-cartistry-text focus:outline-none focus:ring-2 focus:ring-cartistry-accent"
+                  className="w-full px-4 py-2 border border-cartistry-border rounded text-sm bg-white text-cartistry-text focus:outline-none focus:shadow-[inset_0_0_0_2px_var(--ink)]"
                   placeholder="España"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-cartistry-text mb-2">
+                <label className="eyebrow block mb-1.5 text-ink-2">
                   Metros cuadrados *
                 </label>
                 <input
                   type="number"
                   value={metros2}
                   onChange={(e) => setMetros2(e.target.value)}
-                  className="w-full px-4 py-2 border border-cartistry-border rounded text-sm bg-white text-cartistry-text focus:outline-none focus:ring-2 focus:ring-cartistry-accent"
+                  className="w-full px-4 py-2 border border-cartistry-border rounded text-sm bg-white text-cartistry-text focus:outline-none focus:shadow-[inset_0_0_0_2px_var(--ink)]"
                   placeholder="50"
                   step="0.1"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-cartistry-text mb-2">
+                <label className="eyebrow block mb-1.5 text-ink-2">
                   Fecha de apertura *
                 </label>
                 <input
                   type="date"
                   value={fechaApertura}
                   onChange={(e) => setFechaApertura(e.target.value)}
-                  className="w-full px-4 py-2 border border-cartistry-border rounded text-sm bg-white text-cartistry-text focus:outline-none focus:ring-2 focus:ring-cartistry-accent"
+                  className="w-full px-4 py-2 border border-cartistry-border rounded text-sm bg-white text-cartistry-text focus:outline-none focus:shadow-[inset_0_0_0_2px_var(--ink)]"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-cartistry-text mb-2">
+                <label className="eyebrow block mb-1.5 text-ink-2">
                   Categoría de venta *
                 </label>
                 <select
                   value={categoriaVenta}
                   onChange={(e) => setCategoriaVenta(e.target.value as 'boutique' | 'supermercado' | 'fast_fashion')}
-                  className="w-full px-4 py-2 border border-cartistry-border rounded text-sm bg-white text-cartistry-text focus:outline-none focus:ring-2 focus:ring-cartistry-accent"
+                  className="w-full px-4 py-2 border border-cartistry-border rounded text-sm bg-white text-cartistry-text focus:outline-none focus:shadow-[inset_0_0_0_2px_var(--ink)]"
                 >
                   <option value="boutique">Boutique / Tienda de lujo</option>
                   <option value="supermercado">Supermercado / Bazar</option>
@@ -947,7 +939,7 @@ export default function TiendaPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-cartistry-text mb-2">
+                <label className="eyebrow block mb-1.5 text-ink-2">
                   Máximo de SKUs por hueco *
                 </label>
                 <p className="text-xs text-cartistry-text-secondary mb-2">
@@ -956,7 +948,7 @@ export default function TiendaPage() {
                 <select
                   value={maxSkusPorHueco}
                   onChange={(e) => setMaxSkusPorHueco(parseInt(e.target.value))}
-                  className="w-full px-4 py-2 border border-cartistry-border rounded text-sm bg-white text-cartistry-text focus:outline-none focus:ring-2 focus:ring-cartistry-accent"
+                  className="w-full px-4 py-2 border border-cartistry-border rounded text-sm bg-white text-cartistry-text focus:outline-none focus:shadow-[inset_0_0_0_2px_var(--ink)]"
                 >
                   <option value={1}>1 SKU por hueco (boutique premium)</option>
                   <option value={2}>2 SKUs por hueco</option>
@@ -972,14 +964,14 @@ export default function TiendaPage() {
                 <button
                   type="button"
                   onClick={() => setStep('select')}
-                  className="px-6 py-2 border border-cartistry-border text-cartistry-accent rounded font-medium hover:bg-cartistry-bg transition"
+                  className="inline-flex items-center justify-center gap-2 h-10 px-4 rounded-[2px] text-sm font-medium bg-surface text-ink shadow-[inset_0_0_0_1px_var(--line)] hover:bg-sunk transition-colors disabled:opacity-40 disabled:pointer-events-none"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
                   disabled={loading}
-                  className="px-6 py-2 bg-cartistry-cta text-cartistry-cta-text rounded font-medium hover:opacity-90 transition disabled:opacity-50"
+                  className="inline-flex items-center justify-center gap-2 h-10 px-4 rounded-[2px] text-sm font-medium bg-ink text-surface hover:bg-[#282c33] transition-colors disabled:opacity-40 disabled:pointer-events-none"
                 >
                   {loading ? 'Guardando...' : 'Continuar'}
                 </button>
@@ -1214,7 +1206,7 @@ function CarasGridEditor({
                       ok ? 'text-cartistry-text-secondary' : 'text-red-700'
                     }`}
                   >
-                    Total: {sumFilas.toFixed(1)}cm / {alto}cm {ok ? '✓' : '⚠ no cuadra'}
+                    Total: {sumFilas.toFixed(1)}cm / {alto}cm {ok ? 'cuadra' : 'no cuadra'}
                   </div>
                 </div>
               )}
@@ -1227,12 +1219,10 @@ function CarasGridEditor({
 }
 
 function MuebleNewForm({
-  storeType,
   storeId,
   onSave,
   onCancel,
 }: {
-  storeType: 'gondola' | 'corner';
   storeId: string;
   onSave: (mueble: any) => Promise<void>;
   onCancel: () => void;
@@ -1388,7 +1378,7 @@ function MuebleNewForm({
                   onChange={(e) => setSexoTarget(e.target.value as 'femenino' | 'masculino' | 'unisex' | 'indiferente')}
                   className="hidden"
                 />
-                {sexo === 'femenino' ? '👩 Femenino' : sexo === 'masculino' ? '👨 Masculino' : sexo === 'unisex' ? '👥 Unisex' : '🔄 Indiferente'}
+                {sexo === 'femenino' ? 'Femenino' : sexo === 'masculino' ? 'Masculino' : sexo === 'unisex' ? 'Unisex' : 'Indiferente'}
               </label>
             ))}
           </div>
@@ -1488,14 +1478,14 @@ function MuebleNewForm({
         <div className="flex gap-2 pt-3">
           <button
             onClick={onCancel}
-            className="flex-1 px-3 py-1 text-xs border border-cartistry-border text-cartistry-accent rounded hover:bg-cartistry-bg"
+            className="inline-flex items-center justify-center gap-2 h-10 px-4 rounded-[2px] text-sm font-medium bg-surface text-ink shadow-[inset_0_0_0_1px_var(--line)] hover:bg-sunk transition-colors disabled:opacity-40 disabled:pointer-events-none flex-1"
           >
             Cancelar
           </button>
           <button
             onClick={handleSave}
             disabled={loading}
-            className="flex-1 px-3 py-1 text-xs bg-cartistry-cta text-cartistry-cta-text rounded hover:opacity-90 disabled:opacity-50"
+            className="inline-flex items-center justify-center gap-2 h-10 px-4 rounded-[2px] text-sm font-medium bg-ink text-surface hover:bg-[#282c33] transition-colors disabled:opacity-40 disabled:pointer-events-none flex-1"
           >
             {loading ? 'Guardando...' : '✓ Crear mueble'}
           </button>
@@ -1507,14 +1497,12 @@ function MuebleNewForm({
 
 function MuebleEditForm({
   mueble,
-  storeType,
   posicionOverride,
   onPosicionLocalChange,
   onSave,
   onCancel,
 }: {
   mueble: any;
-  storeType: 'gondola' | 'corner';
   posicionOverride?: string;
   onPosicionLocalChange?: (pos: string) => void;
   onSave: (mueble: any) => Promise<void>;
@@ -1693,7 +1681,7 @@ function MuebleEditForm({
                   onChange={(e) => setSexoTarget(e.target.value as 'femenino' | 'masculino' | 'unisex' | 'indiferente')}
                   className="hidden"
                 />
-                {sexo === 'femenino' ? '👩 Femenino' : sexo === 'masculino' ? '👨 Masculino' : sexo === 'unisex' ? '👥 Unisex' : '🔄 Indiferente'}
+                {sexo === 'femenino' ? 'Femenino' : sexo === 'masculino' ? 'Masculino' : sexo === 'unisex' ? 'Unisex' : 'Indiferente'}
               </label>
             ))}
           </div>
@@ -1803,14 +1791,14 @@ function MuebleEditForm({
           <button
             onClick={onCancel}
             disabled={loading}
-            className="flex-1 px-3 py-1 text-xs border border-cartistry-border text-cartistry-accent rounded hover:bg-cartistry-bg disabled:opacity-50"
+            className="inline-flex items-center justify-center gap-2 h-10 px-4 rounded-[2px] text-sm font-medium bg-surface text-ink shadow-[inset_0_0_0_1px_var(--line)] hover:bg-sunk transition-colors disabled:opacity-40 disabled:pointer-events-none flex-1"
           >
             Cancelar
           </button>
           <button
             onClick={handleSave}
             disabled={loading}
-            className="flex-1 px-3 py-1 text-xs bg-cartistry-cta text-cartistry-cta-text rounded hover:opacity-90 disabled:opacity-50"
+            className="inline-flex items-center justify-center gap-2 h-10 px-4 rounded-[2px] text-sm font-medium bg-ink text-surface hover:bg-[#282c33] transition-colors disabled:opacity-40 disabled:pointer-events-none flex-1"
           >
             {loading ? 'Guardando...' : '✓ Guardar'}
           </button>
@@ -1959,14 +1947,14 @@ function GondolaForm({ onComplete }: { onComplete: () => void }) {
             )}
 
             <div>
-              <label className="block text-sm font-medium text-cartistry-text mb-2">
+              <label className="eyebrow block mb-1.5 text-ink-2">
                 ¿Cuántas góndolas tiene? *
               </label>
               <input
                 type="number"
                 value={numGondolas}
                 onChange={(e) => setNumGondolas(e.target.value)}
-                className="w-full px-4 py-2 border border-cartistry-border rounded text-sm bg-white text-cartistry-text focus:outline-none focus:ring-2 focus:ring-cartistry-accent"
+                className="w-full px-4 py-2 border border-cartistry-border rounded text-sm bg-white text-cartistry-text focus:outline-none focus:shadow-[inset_0_0_0_2px_var(--ink)]"
                 min="1"
               />
             </div>
@@ -1978,7 +1966,7 @@ function GondolaForm({ onComplete }: { onComplete: () => void }) {
             <div className="flex gap-4 pt-6">
               <button
                 type="submit"
-                className="px-6 py-2 bg-cartistry-cta text-cartistry-cta-text rounded font-medium hover:opacity-90 transition"
+                className="inline-flex items-center justify-center gap-2 h-10 px-4 rounded-[2px] text-sm font-medium bg-ink text-surface hover:bg-[#282c33] transition-colors disabled:opacity-40 disabled:pointer-events-none"
               >
                 Continuar
               </button>
@@ -1999,41 +1987,41 @@ function GondolaForm({ onComplete }: { onComplete: () => void }) {
             )}
 
             <div>
-              <label className="block text-sm font-medium text-cartistry-text mb-2">
+              <label className="eyebrow block mb-1.5 text-ink-2">
                 Nombre de la góndola *
               </label>
               <input
                 type="text"
                 value={gondolas[currentGondolaIndex]?.nombre || ''}
                 onChange={(e) => handleGondolaChange('nombre', e.target.value)}
-                className="w-full px-4 py-2 border border-cartistry-border rounded text-sm bg-white text-cartistry-text focus:outline-none focus:ring-2 focus:ring-cartistry-accent"
+                className="w-full px-4 py-2 border border-cartistry-border rounded text-sm bg-white text-cartistry-text focus:outline-none focus:shadow-[inset_0_0_0_2px_var(--ink)]"
                 placeholder="Ej: Góndola Entrada"
               />
             </div>
 
             <div className="grid md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-cartistry-text mb-2">
+                <label className="eyebrow block mb-1.5 text-ink-2">
                   Alto (cm) *
                 </label>
                 <input
                   type="number"
                   value={gondolas[currentGondolaIndex]?.alto || ''}
                   onChange={(e) => handleGondolaChange('alto', e.target.value)}
-                  className="w-full px-4 py-2 border border-cartistry-border rounded text-sm bg-white text-cartistry-text focus:outline-none focus:ring-2 focus:ring-cartistry-accent"
+                  className="w-full px-4 py-2 border border-cartistry-border rounded text-sm bg-white text-cartistry-text focus:outline-none focus:shadow-[inset_0_0_0_2px_var(--ink)]"
                   placeholder="180"
                   step="0.1"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-cartistry-text mb-2">
+                <label className="eyebrow block mb-1.5 text-ink-2">
                   Ancho (cm) *
                 </label>
                 <input
                   type="number"
                   value={gondolas[currentGondolaIndex]?.ancho || ''}
                   onChange={(e) => handleGondolaChange('ancho', e.target.value)}
-                  className="w-full px-4 py-2 border border-cartistry-border rounded text-sm bg-white text-cartistry-text focus:outline-none focus:ring-2 focus:ring-cartistry-accent"
+                  className="w-full px-4 py-2 border border-cartistry-border rounded text-sm bg-white text-cartistry-text focus:outline-none focus:shadow-[inset_0_0_0_2px_var(--ink)]"
                   placeholder="120"
                   step="0.1"
                 />
@@ -2042,40 +2030,40 @@ function GondolaForm({ onComplete }: { onComplete: () => void }) {
 
             <div className="grid md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-cartistry-text mb-2">
+                <label className="eyebrow block mb-1.5 text-ink-2">
                   Profundo (cm) *
                 </label>
                 <input
                   type="number"
                   value={gondolas[currentGondolaIndex]?.profundo || ''}
                   onChange={(e) => handleGondolaChange('profundo', e.target.value)}
-                  className="w-full px-4 py-2 border border-cartistry-border rounded text-sm bg-white text-cartistry-text focus:outline-none focus:ring-2 focus:ring-cartistry-accent"
+                  className="w-full px-4 py-2 border border-cartistry-border rounded text-sm bg-white text-cartistry-text focus:outline-none focus:shadow-[inset_0_0_0_2px_var(--ink)]"
                   placeholder="40"
                   step="0.1"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-cartistry-text mb-2">
+                <label className="eyebrow block mb-1.5 text-ink-2">
                   Número de columnas *
                 </label>
                 <input
                   type="number"
                   value={gondolas[currentGondolaIndex]?.columnas || ''}
                   onChange={(e) => handleGondolaChange('columnas', e.target.value)}
-                  className="w-full px-4 py-2 border border-cartistry-border rounded text-sm bg-white text-cartistry-text focus:outline-none focus:ring-2 focus:ring-cartistry-accent"
+                  className="w-full px-4 py-2 border border-cartistry-border rounded text-sm bg-white text-cartistry-text focus:outline-none focus:shadow-[inset_0_0_0_2px_var(--ink)]"
                   placeholder="3"
                   min="1"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-cartistry-text mb-2">
+                <label className="eyebrow block mb-1.5 text-ink-2">
                   Número de filas/baldas *
                 </label>
                 <input
                   type="number"
                   value={gondolas[currentGondolaIndex]?.filas || ''}
                   onChange={(e) => handleGondolaChange('filas', e.target.value)}
-                  className="w-full px-4 py-2 border border-cartistry-border rounded text-sm bg-white text-cartistry-text focus:outline-none focus:ring-2 focus:ring-cartistry-accent"
+                  className="w-full px-4 py-2 border border-cartistry-border rounded text-sm bg-white text-cartistry-text focus:outline-none focus:shadow-[inset_0_0_0_2px_var(--ink)]"
                   placeholder="4"
                   min="1"
                 />
@@ -2083,7 +2071,7 @@ function GondolaForm({ onComplete }: { onComplete: () => void }) {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-cartistry-text mb-2">
+              <label className="eyebrow block mb-1.5 text-ink-2">
                 Productos para *
               </label>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -2106,7 +2094,7 @@ function GondolaForm({ onComplete }: { onComplete: () => void }) {
                         onChange={(e) => handleGondolaChange('sexo_target', e.target.value)}
                         className="hidden"
                       />
-                      {sexo === 'femenino' ? '👩 Femenino' : sexo === 'masculino' ? '👨 Masculino' : sexo === 'unisex' ? '👥 Unisex' : '🔄 Indiferente'}
+                      {sexo === 'femenino' ? 'Femenino' : sexo === 'masculino' ? 'Masculino' : sexo === 'unisex' ? 'Unisex' : 'Indiferente'}
                     </label>
                   );
                 })}
@@ -2167,7 +2155,7 @@ function GondolaForm({ onComplete }: { onComplete: () => void }) {
                 <button
                   type="button"
                   onClick={handlePrevGondola}
-                  className="px-6 py-2 border border-cartistry-border text-cartistry-accent rounded font-medium hover:bg-cartistry-bg transition"
+                  className="inline-flex items-center justify-center gap-2 h-10 px-4 rounded-[2px] text-sm font-medium bg-surface text-ink shadow-[inset_0_0_0_1px_var(--line)] hover:bg-sunk transition-colors disabled:opacity-40 disabled:pointer-events-none"
                 >
                   ← Anterior
                 </button>
@@ -2177,7 +2165,7 @@ function GondolaForm({ onComplete }: { onComplete: () => void }) {
                 <button
                   type="button"
                   onClick={handleNextGondola}
-                  className="px-6 py-2 bg-cartistry-cta text-cartistry-cta-text rounded font-medium hover:opacity-90 transition"
+                  className="inline-flex items-center justify-center gap-2 h-10 px-4 rounded-[2px] text-sm font-medium bg-ink text-surface hover:bg-[#282c33] transition-colors disabled:opacity-40 disabled:pointer-events-none"
                 >
                   Siguiente →
                 </button>
@@ -2185,7 +2173,7 @@ function GondolaForm({ onComplete }: { onComplete: () => void }) {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="px-6 py-2 bg-cartistry-cta text-cartistry-cta-text rounded font-medium hover:opacity-90 transition disabled:opacity-50"
+                  className="inline-flex items-center justify-center gap-2 h-10 px-4 rounded-[2px] text-sm font-medium bg-ink text-surface hover:bg-[#282c33] transition-colors disabled:opacity-40 disabled:pointer-events-none"
                 >
                   {loading ? 'Guardando...' : 'Completar'}
                 </button>
@@ -2223,14 +2211,14 @@ function CornerForm({ onComplete }: { onComplete: () => void }) {
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label className="block text-sm font-medium text-cartistry-text mb-2">
+          <label className="eyebrow block mb-1.5 text-ink-2">
             ¿Cuántas paredes propias tiene? *
           </label>
           <input
             type="number"
             value={numParedes}
             onChange={(e) => setNumParedes(e.target.value)}
-            className="w-full px-4 py-2 border border-cartistry-border rounded text-sm bg-white text-cartistry-text focus:outline-none focus:ring-2 focus:ring-cartistry-accent"
+            className="w-full px-4 py-2 border border-cartistry-border rounded text-sm bg-white text-cartistry-text focus:outline-none focus:shadow-[inset_0_0_0_2px_var(--ink)]"
             min="1"
             max="3"
           />
@@ -2244,7 +2232,7 @@ function CornerForm({ onComplete }: { onComplete: () => void }) {
           <button
             type="submit"
             disabled={loading}
-            className="px-6 py-2 bg-cartistry-cta text-cartistry-cta-text rounded font-medium hover:opacity-90 transition disabled:opacity-50"
+            className="inline-flex items-center justify-center gap-2 h-10 px-4 rounded-[2px] text-sm font-medium bg-ink text-surface hover:bg-[#282c33] transition-colors disabled:opacity-40 disabled:pointer-events-none"
           >
             {loading ? 'Guardando...' : 'Completar'}
           </button>

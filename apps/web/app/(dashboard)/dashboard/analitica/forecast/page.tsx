@@ -1,20 +1,13 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import { getUserId } from '@/lib/auth';
 import { ExportButton } from '@/components/analitica/ExportButton';
+import { PageHeader } from '@/components/ui';
+import { MESES_LARGO as MESES, MESES as MESES_CORTOS } from '@/lib/dates';
 
-const MESES = [
-  'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
-  'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre',
-];
 
-const MESES_CORTOS = [
-  'Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun',
-  'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic',
-];
 
 interface Store {
   id: string;
@@ -116,7 +109,7 @@ export default function ForecastPage() {
         const initial = list.find((s: any) => s.id === storedActive) || list[0];
         setSelectedStoreId(initial.id);
       }
-    } catch (err) {
+    } catch {
       setError('Error cargando tiendas');
     } finally {
       setLoading(false);
@@ -331,26 +324,18 @@ export default function ForecastPage() {
   ];
 
   return (
-    <main className="min-h-screen bg-cartistry-bg">
-      <header className="bg-cartistry-surface border-b border-cartistry-border">
-        <div className="max-w-6xl mx-auto px-6 py-4 flex items-end justify-between gap-4">
-          <div>
-            <Link href="/dashboard/analitica" className="text-cartistry-accent hover:underline text-sm">
-              ← Volver
-            </Link>
-            <h1 className="text-2xl font-serif font-bold text-cartistry-text mt-2">
-              Forecast — Objetivos de ventas
-            </h1>
-          </div>
-          <ExportButton
+    <main className="px-6 py-10 lg:px-10 lg:py-12">
+
+      <div className="max-w-6xl mx-auto space-y-6">
+        <PageHeader
+          title="Forecast — Objetivos de ventas"
+          actions={<><ExportButton
             filenameBase={`forecast_${(storeName || 'todas').replace(/\s+/g, '_')}_${year}`}
             headers={exportHeaders}
             rows={exportRows}
-          />
-        </div>
-      </header>
+          /></>}
+        />
 
-      <div className="max-w-6xl mx-auto px-6 py-12 space-y-6">
         {loading ? (
           <p className="text-cartistry-text-secondary text-sm">Cargando...</p>
         ) : stores.length === 0 ? (
@@ -359,11 +344,11 @@ export default function ForecastPage() {
           <>
             <div className="grid md:grid-cols-2 gap-4">
               <div className="bg-cartistry-surface border border-cartistry-border rounded p-4">
-                <label className="block text-sm font-medium text-cartistry-text mb-2">🏬 Tienda</label>
+                <label className="eyebrow block mb-1.5 text-ink-2">Tienda</label>
                 <select
                   value={selectedStoreId}
                   onChange={(e) => setSelectedStoreId(e.target.value)}
-                  className="w-full px-3 py-2 border border-cartistry-border rounded bg-white text-cartistry-text focus:outline-none focus:ring-2 focus:ring-cartistry-accent text-sm"
+                  className="w-full px-3 py-2 border border-cartistry-border rounded bg-white text-cartistry-text focus:outline-none focus:shadow-[inset_0_0_0_2px_var(--ink)] text-sm"
                 >
                   {stores.map((s) => (
                     <option key={s.id} value={s.id}>{s.nombre}</option>
@@ -371,11 +356,11 @@ export default function ForecastPage() {
                 </select>
               </div>
               <div className="bg-cartistry-surface border border-cartistry-border rounded p-4">
-                <label className="block text-sm font-medium text-cartistry-text mb-2">📅 Año</label>
+                <label className="eyebrow block mb-1.5 text-ink-2">Año</label>
                 <select
                   value={year}
                   onChange={(e) => setYear(parseInt(e.target.value))}
-                  className="w-full px-3 py-2 border border-cartistry-border rounded bg-white text-cartistry-text focus:outline-none focus:ring-2 focus:ring-cartistry-accent text-sm"
+                  className="w-full px-3 py-2 border border-cartistry-border rounded bg-white text-cartistry-text focus:outline-none focus:shadow-[inset_0_0_0_2px_var(--ink)] text-sm"
                 >
                   {yearOptions.map((y) => (
                     <option key={y} value={y}>{y}</option>
@@ -438,9 +423,9 @@ export default function ForecastPage() {
                     <col style={{ width: '7.5%' }} />
                     <col style={{ width: '7.5%' }} />
                   </colgroup>
-                  <thead className="bg-cartistry-bg/50">
+                  <thead className="bg-surface">
                     <tr className="text-cartistry-text-secondary">
-                      <th className="text-left px-2 py-2 font-medium">&nbsp;</th>
+                      <th className="eyebrow text-left font-normal px-2 py-2.5">&nbsp;</th>
                       {MESES_CORTOS.map((m, idx) => (
                         <th key={m} className="text-center px-1 py-2 font-medium" title={MESES[idx]}>{m}</th>
                       ))}
@@ -545,7 +530,7 @@ export default function ForecastPage() {
               <button
                 onClick={handleSave}
                 disabled={saving}
-                className="px-6 py-2 bg-cartistry-cta text-cartistry-cta-text rounded font-medium hover:opacity-90 transition disabled:opacity-50"
+                className="inline-flex items-center justify-center gap-2 h-10 px-4 rounded-[2px] text-sm font-medium bg-ink text-surface hover:bg-[#282c33] transition-colors disabled:opacity-40 disabled:pointer-events-none"
               >
                 {saving ? 'Guardando...' : 'Guardar forecast'}
               </button>

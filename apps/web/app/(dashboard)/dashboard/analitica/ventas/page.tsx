@@ -1,10 +1,12 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import { getUserId } from '@/lib/auth';
 import { ExportButton } from '@/components/analitica/ExportButton';
+import { PageHeader } from '@/components/ui';
+import { formatEUR as fmtEur, formatInt as fmtInt } from '@/lib/format';
+import { MESES_LARGO as MESES } from '@/lib/dates';
 
 type Granularidad = 'diario' | 'semanal' | 'mensual' | 'anual';
 
@@ -30,10 +32,7 @@ interface Bucket {
   sortKey: string;
 }
 
-const fmtEur = (n: number) =>
-  '€' + n.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
-const fmtInt = (n: number) => n.toLocaleString('es-ES');
 
 function startOfWeekISO(d: Date): string {
   // ISO week: Monday as first day
@@ -54,13 +53,11 @@ function bucketize(sales: Sale[], granularidad: Granularidad): Bucket[] {
     const date = new Date(Number(yyyy), Number(mm) - 1, Number(dd));
 
     let key = '';
-    let label = '';
     let sortKey = '';
 
     if (granularidad === 'diario') {
       key = s.fecha;
       sortKey = s.fecha;
-      label = `${dd}/${mm}/${yyyy}`;
     } else if (granularidad === 'semanal') {
       const monday = startOfWeekISO(date);
       key = monday;
@@ -68,21 +65,12 @@ function bucketize(sales: Sale[], granularidad: Granularidad): Bucket[] {
       const m = new Date(monday);
       const sundayDate = new Date(m);
       sundayDate.setDate(sundayDate.getDate() + 6);
-      const fmtDate = (d: Date) =>
-        `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}`;
-      label = `${fmtDate(m)} – ${fmtDate(sundayDate)} (${m.getFullYear()})`;
     } else if (granularidad === 'mensual') {
       key = `${yyyy}-${mm}`;
       sortKey = key;
-      const MESES = [
-        'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
-        'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre',
-      ];
-      label = `${MESES[Number(mm) - 1]} ${yyyy}`;
     } else {
       key = yyyy;
       sortKey = yyyy;
-      label = yyyy;
     }
 
     let bucket = groups.get(key);
@@ -114,10 +102,6 @@ function bucketize(sales: Sale[], granularidad: Granularidad): Bucket[] {
             })()
           : granularidad === 'mensual'
             ? (() => {
-                const MESES = [
-                  'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
-                  'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre',
-                ];
                 const [y, m] = key.split('-');
                 return `${MESES[Number(m) - 1]} ${y}`;
               })()
@@ -191,7 +175,7 @@ export default function VentasAnaliticaPage() {
       }
 
       setSales((salesData as any) || []);
-    } catch (err) {
+    } catch {
       setError('Error cargando datos');
     } finally {
       setLoading(false);
@@ -253,26 +237,19 @@ export default function VentasAnaliticaPage() {
   ]);
 
   return (
-    <main className="min-h-screen bg-cartistry-bg">
-      <header className="bg-cartistry-surface border-b border-cartistry-border">
-        <div className="max-w-6xl mx-auto px-6 py-4 flex items-end justify-between gap-4">
-          <div>
-            <Link href="/dashboard" className="text-cartistry-accent hover:underline text-sm">
-              ← Volver
-            </Link>
-            <h1 className="text-2xl font-serif font-bold text-cartistry-text mt-2">
-              Analítica · Ventas
-            </h1>
-          </div>
-          <ExportButton
+    <main className="px-6 py-10 lg:px-10 lg:py-12">
+
+      <div className="max-w-6xl mx-auto space-y-6">
+        <PageHeader
+          label="Analítica"
+          title="Ventas"
+          actions={<><ExportButton
             filenameBase={`analitica_ventas_${granularidad}`}
             headers={exportHeaders}
             rows={exportRows}
-          />
-        </div>
-      </header>
+          /></>}
+        />
 
-      <div className="max-w-6xl mx-auto px-6 py-12 space-y-6">
         {loading ? (
           <p className="text-cartistry-text-secondary text-sm">Cargando...</p>
         ) : (
@@ -280,11 +257,11 @@ export default function VentasAnaliticaPage() {
             <div className="bg-cartistry-surface border border-cartistry-border rounded p-4">
               <div className="grid md:grid-cols-5 gap-3 items-end">
                 <div>
-                  <label className="block text-xs text-cartistry-text-secondary mb-1">🏬 Tienda</label>
+                  <label className="eyebrow block mb-1.5">Tienda</label>
                   <select
                     value={storeId}
                     onChange={(e) => setStoreId(e.target.value)}
-                    className="w-full px-3 py-2 border border-cartistry-border rounded text-sm bg-white text-cartistry-text focus:outline-none focus:ring-2 focus:ring-cartistry-accent"
+                    className="w-full h-10 px-3 bg-surface text-ink text-sm rounded-[2px] shadow-[inset_0_0_0_1px_var(--line)] placeholder:text-ink-3 focus:outline-none focus:shadow-[inset_0_0_0_2px_var(--ink)] transition-shadow"
                   >
                     <option value="">Todas</option>
                     {stores.map((s) => (
@@ -293,11 +270,11 @@ export default function VentasAnaliticaPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs text-cartistry-text-secondary mb-1">📅 Agrupación</label>
+                  <label className="eyebrow block mb-1.5">Agrupación</label>
                   <select
                     value={granularidad}
                     onChange={(e) => setGranularidad(e.target.value as Granularidad)}
-                    className="w-full px-3 py-2 border border-cartistry-border rounded text-sm bg-white text-cartistry-text focus:outline-none focus:ring-2 focus:ring-cartistry-accent"
+                    className="w-full h-10 px-3 bg-surface text-ink text-sm rounded-[2px] shadow-[inset_0_0_0_1px_var(--line)] placeholder:text-ink-3 focus:outline-none focus:shadow-[inset_0_0_0_2px_var(--ink)] transition-shadow"
                   >
                     <option value="diario">Diario</option>
                     <option value="semanal">Semanal</option>
@@ -306,28 +283,28 @@ export default function VentasAnaliticaPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs text-cartistry-text-secondary mb-1">Desde</label>
+                  <label className="eyebrow block mb-1.5">Desde</label>
                   <input
                     type="date"
                     value={dateFrom}
                     onChange={(e) => setDateFrom(e.target.value)}
-                    className="w-full px-3 py-2 border border-cartistry-border rounded text-sm bg-white text-cartistry-text focus:outline-none focus:ring-2 focus:ring-cartistry-accent"
+                    className="w-full h-10 px-3 bg-surface text-ink text-sm rounded-[2px] shadow-[inset_0_0_0_1px_var(--line)] placeholder:text-ink-3 focus:outline-none focus:shadow-[inset_0_0_0_2px_var(--ink)] transition-shadow"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs text-cartistry-text-secondary mb-1">Hasta</label>
+                  <label className="eyebrow block mb-1.5">Hasta</label>
                   <input
                     type="date"
                     value={dateTo}
                     onChange={(e) => setDateTo(e.target.value)}
-                    className="w-full px-3 py-2 border border-cartistry-border rounded text-sm bg-white text-cartistry-text focus:outline-none focus:ring-2 focus:ring-cartistry-accent"
+                    className="w-full h-10 px-3 bg-surface text-ink text-sm rounded-[2px] shadow-[inset_0_0_0_1px_var(--line)] placeholder:text-ink-3 focus:outline-none focus:shadow-[inset_0_0_0_2px_var(--ink)] transition-shadow"
                   />
                 </div>
                 <div>
                   <button
                     onClick={clearFilters}
                     disabled={!hasFilters}
-                    className="w-full px-3 py-2 border border-cartistry-border rounded text-sm text-cartistry-accent hover:bg-cartistry-bg transition disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="inline-flex items-center justify-center gap-2 h-10 px-4 rounded-[2px] text-sm font-medium bg-surface text-ink shadow-[inset_0_0_0_1px_var(--line)] hover:bg-sunk transition-colors disabled:opacity-40 disabled:pointer-events-none w-full"
                   >
                     Limpiar filtros
                   </button>
@@ -376,14 +353,14 @@ export default function VentasAnaliticaPage() {
                 </div>
               ) : (
                 <table className="w-full text-sm">
-                  <thead className="bg-cartistry-bg/50">
-                    <tr className="text-xs text-cartistry-text-secondary">
-                      <th className="text-left px-4 py-2 font-medium">Periodo</th>
-                      <th className="text-left px-4 py-2 font-medium">Ventas (€)</th>
-                      <th className="text-right px-4 py-2 font-medium">Importe</th>
-                      <th className="text-right px-4 py-2 font-medium">Unidades</th>
-                      <th className="text-right px-4 py-2 font-medium">Tickets</th>
-                      <th className="text-right px-4 py-2 font-medium">Ticket medio</th>
+                  <thead className="bg-surface">
+                    <tr>
+                      <th className="eyebrow text-left font-normal px-4 py-2.5">Periodo</th>
+                      <th className="eyebrow text-left font-normal px-4 py-2.5">Ventas (€)</th>
+                      <th className="eyebrow text-right font-normal px-4 py-2.5">Importe</th>
+                      <th className="eyebrow text-right font-normal px-4 py-2.5">Unidades</th>
+                      <th className="eyebrow text-right font-normal px-4 py-2.5">Tickets</th>
+                      <th className="eyebrow text-right font-normal px-4 py-2.5">Ticket medio</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -401,16 +378,16 @@ export default function VentasAnaliticaPage() {
                               />
                             </div>
                           </td>
-                          <td className="px-4 py-2 text-right text-cartistry-text font-medium">
+                          <td className="px-4 py-2 text-right font-mono tabular-nums text-cartistry-text font-medium">
                             {fmtEur(b.ventas)}
                           </td>
-                          <td className="px-4 py-2 text-right text-cartistry-text-secondary">
+                          <td className="px-4 py-2 text-right font-mono tabular-nums text-cartistry-text-secondary">
                             {fmtInt(b.unidades)}
                           </td>
-                          <td className="px-4 py-2 text-right text-cartistry-text-secondary">
+                          <td className="px-4 py-2 text-right font-mono tabular-nums text-cartistry-text-secondary">
                             {fmtInt(b.tickets)}
                           </td>
-                          <td className="px-4 py-2 text-right text-cartistry-text-secondary">
+                          <td className="px-4 py-2 text-right font-mono tabular-nums text-cartistry-text-secondary">
                             {fmtEur(ticketMed)}
                           </td>
                         </tr>

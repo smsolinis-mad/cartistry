@@ -340,7 +340,6 @@ export async function POST(request: Request) {
 
     // Calcular número de celdas disponibles a partir de las baldas
     // efectivamente generadas (suma por cara de cada mueble).
-    const firstMueble = muebles[0];
     const numCeldas =
       muebles.reduce(
         (acc, m) => acc + m.caras.reduce((s, c) => s + c.baldas.length, 0),
@@ -402,21 +401,6 @@ export async function POST(request: Request) {
       }));
     }
 
-    // Obtener primer mueble (su primera cara) para estructura visual.
-    // Con grids por cara, deducimos cols/filas de las baldas generadas.
-    const firstCara = firstMueble?.caras?.[0];
-    const estructuraGrid = firstCara && firstCara.baldas.length > 0
-      ? {
-          num_columnas: firstCara.baldas.reduce(
-            (m: number, b: { columna: number }) => Math.max(m, b.columna),
-            0
-          ) + 1,
-          num_filas: firstCara.baldas.reduce(
-            (m: number, b: { numero: number }) => Math.max(m, b.numero),
-            0
-          ) + 1,
-        }
-      : { num_columnas: 1, num_filas: 4 };
 
     // No se guarda automáticamente: el planograma solo se persiste en el
     // historial cuando el usuario pulsa "Guarda tu diseño" en la interfaz.

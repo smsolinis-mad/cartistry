@@ -1,16 +1,16 @@
 'use client';
 
 import { useState } from 'react';
-import Link from 'next/link';
 import { getRulesByObjective } from '@cartistry/rules-engine';
 import type { Objective } from '@cartistry/types';
+import { PageHeader } from '@/components/ui';
 
-const OBJECTIVES: Array<{ value: Objective; label: string; emoji: string; description: string }> = [
-  { value: 'nueva_coleccion', label: 'Nueva colección', emoji: '🆕', description: 'Entrada de nueva colección al punto de venta' },
-  { value: 'promocion', label: 'Promoción', emoji: '🎯', description: 'Ejecutar una campaña o acción promocional' },
-  { value: 'aumentar_ventas', label: 'Aumentar ventas', emoji: '📈', description: 'Maximizar unidades vendidas en el período' },
-  { value: 'liquidacion', label: 'Liquidación', emoji: '🗑️', description: 'Reducir stock y dar salida a producto parado' },
-  { value: 'aumentar_margen', label: 'Aumentar margen', emoji: '💰', description: 'Maximizar el margen neto de la tienda' },
+const OBJECTIVES: Array<{ value: Objective; label: string; description: string }> = [
+  { value: 'nueva_coleccion', label: 'Nueva colección', description: 'Entrada de nueva colección al punto de venta' },
+  { value: 'promocion', label: 'Promoción', description: 'Ejecutar una campaña o acción promocional' },
+  { value: 'aumentar_ventas', label: 'Aumentar ventas', description: 'Maximizar unidades vendidas en el período' },
+  { value: 'liquidacion', label: 'Liquidación', description: 'Reducir stock y dar salida a producto parado' },
+  { value: 'aumentar_margen', label: 'Aumentar margen', description: 'Maximizar el margen neto de la tienda' },
 ];
 
 const GROUP_LABEL: Record<string, string> = {
@@ -36,19 +36,11 @@ export default function EspecificacionesPage() {
   const rules = getRulesByObjective(selectedObjective);
 
   return (
-    <main className="min-h-screen bg-cartistry-bg">
-      <header className="bg-cartistry-surface border-b border-cartistry-border">
-        <div className="max-w-6xl mx-auto px-6 py-4">
-          <Link href="/dashboard/planograma" className="text-cartistry-accent hover:underline text-sm">
-            ← Volver
-          </Link>
-          <h1 className="text-2xl font-serif font-bold text-cartistry-text mt-2">
-            Especificaciones
-          </h1>
-        </div>
-      </header>
+    <main className="px-6 py-10 lg:px-10 lg:py-12">
 
-      <div className="max-w-6xl mx-auto px-6 py-12 space-y-8">
+      <div className="max-w-6xl mx-auto space-y-8">
+        <PageHeader title="Especificaciones" />
+
         <div className="border border-cartistry-border rounded p-8 bg-cartistry-surface">
           <h3 className="font-serif font-bold text-cartistry-text mb-2 text-lg">
             Selecciona el objetivo del planograma
@@ -82,7 +74,7 @@ export default function EspecificacionesPage() {
                       />
                       <div>
                         <div className="font-bold text-cartistry-text">
-                          {obj.emoji} {obj.label}
+                          {obj.label}
                         </div>
                         <div className="text-sm text-cartistry-text-secondary">
                           {obj.description}

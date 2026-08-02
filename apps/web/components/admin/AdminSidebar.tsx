@@ -2,7 +2,8 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { Home, Users, Building2, Receipt, BarChart3, Settings, LogOut, type LucideIcon } from 'lucide-react';
+import { Gauge, Users, Building2, Receipt, BarChart3, Settings, LogOut, type LucideIcon } from 'lucide-react';
+import { Wordmark } from '@/components/landing/Wordmark';
 
 interface MenuItem {
   label: string;
@@ -12,7 +13,7 @@ interface MenuItem {
 }
 
 const MENU: MenuItem[] = [
-  { label: 'Home', href: '/admin', icon: Home, hint: 'Principales ratios' },
+  { label: 'Resumen', href: '/admin', icon: Gauge },
   { label: 'Equipo', href: '/admin/equipo', icon: Users },
   { label: 'Empresas', href: '/admin/empresas', icon: Building2 },
   { label: 'Facturación', href: '/admin/facturacion', icon: Receipt },
@@ -36,15 +37,17 @@ export function AdminSidebar() {
       : pathname === item.href || pathname.startsWith(item.href + '/');
 
   return (
-    <aside className="fixed top-0 left-0 h-screen w-56 bg-[#1f1d1a] text-[#e8ddd3] flex flex-col py-6 px-3 z-30">
-      <div className="px-3 mb-8">
-        <Link href="/admin" className="text-2xl font-serif font-bold text-[#f5f0eb]">
-          Cartistry
+    <aside className="fixed top-0 left-0 h-screen w-56 bg-ink flex flex-col z-30">
+      <div className="px-4 pt-4 pb-5">
+        <Link href="/admin">
+          <Wordmark tone="inverse" />
         </Link>
-        <p className="text-[10px] uppercase tracking-widest text-[#b8a896] mt-1">Administración</p>
+        <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-white/35 mt-2 pl-[26px]">
+          Administración
+        </p>
       </div>
 
-      <nav className="flex-1 space-y-1">
+      <nav className="flex-1 overflow-y-auto px-2">
         {MENU.map((item) => {
           const Icon = item.icon;
           const active = isActive(item);
@@ -52,29 +55,36 @@ export function AdminSidebar() {
             <Link
               key={item.label}
               href={item.href}
-              className={`flex items-center gap-3 px-3 py-2.5 rounded-md text-sm transition ${
+              aria-current={active ? 'page' : undefined}
+              className={`relative flex items-center gap-2.5 pl-3 pr-2 py-2 rounded-[2px] text-[13px] transition-colors ${
                 active
-                  ? 'bg-[#2d2a26] text-[#f5f0eb] font-medium'
-                  : 'text-[#b8a896] hover:text-[#f5f0eb] hover:bg-[#2d2a26]/50'
+                  ? 'text-surface bg-white/[0.08] font-medium'
+                  : 'text-white/60 hover:text-white hover:bg-white/[0.05]'
               }`}
             >
-              <Icon size={18} className="flex-shrink-0" />
+              {active ? (
+                <span
+                  className="absolute left-0 top-1.5 bottom-1.5 w-[2px] bg-surface rounded-[1px]"
+                  aria-hidden
+                />
+              ) : null}
+              <Icon size={15} className="shrink-0" strokeWidth={1.75} />
               <span className="flex-1">{item.label}</span>
-              {item.hint && (
-                <span className="text-[10px] text-[#8a7a68] font-normal">{item.hint}</span>
-              )}
+              {item.hint ? (
+                <span className="font-mono text-[10px] text-white/35">{item.hint}</span>
+              ) : null}
             </Link>
           );
         })}
       </nav>
 
-      <div className="pt-4 mt-2 border-t border-[#2d2a26]">
+      <div className="border-t border-white/10 p-2">
         <button
           type="button"
           onClick={handleLogout}
-          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-md text-sm text-[#b8a896] hover:text-[#f5f0eb] hover:bg-[#2d2a26]/50 transition"
+          className="w-full flex items-center gap-2.5 px-3 py-2 rounded-[2px] text-[13px] text-white/60 hover:text-white hover:bg-white/[0.05] transition-colors"
         >
-          <LogOut size={18} className="flex-shrink-0" />
+          <LogOut size={15} className="shrink-0" strokeWidth={1.75} />
           <span>Cerrar sesión</span>
         </button>
       </div>
@@ -94,14 +104,12 @@ export function MetricCard({
   sub?: string;
 }) {
   const valueColor =
-    tone === 'green' ? 'text-green-700' : tone === 'red' ? 'text-red-700' : 'text-cartistry-text';
+    tone === 'green' ? 'text-positive' : tone === 'red' ? 'text-danger' : 'text-ink';
   return (
-    <div className="bg-cartistry-surface border border-cartistry-border rounded p-4">
-      <p className="text-xs uppercase tracking-wider font-bold text-cartistry-text-secondary mb-1">
-        {label}
-      </p>
-      <p className={`text-xl font-serif font-bold ${valueColor}`}>{value}</p>
-      {sub && <p className="text-xs text-cartistry-text-secondary mt-1">{sub}</p>}
+    <div className="bg-surface rounded-[2px] shadow-[inset_0_0_0_1px_var(--line)] p-4">
+      <p className="eyebrow">{label}</p>
+      <p className={`metric text-[26px] mt-2.5 ${valueColor}`}>{value}</p>
+      {sub ? <p className="font-mono text-[11px] text-ink-3 mt-2">{sub}</p> : null}
     </div>
   );
 }

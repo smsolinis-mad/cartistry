@@ -1,9 +1,9 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import { getUserId } from '@/lib/auth';
+import { PageHeader } from '@/components/ui';
 
 interface Store {
   id: string;
@@ -221,22 +221,16 @@ export default function AnaliticaEquipoPage() {
     cobertura.length > 0 ? cobertura.reduce((s, r) => s + r.personas, 0) / cobertura.length : 0;
 
   return (
-    <main className="min-h-screen bg-cartistry-bg">
-      <header className="bg-cartistry-surface border-b border-cartistry-border">
-        <div className="max-w-6xl mx-auto px-6 py-4">
-          <Link href="/dashboard/analitica" className="text-cartistry-accent hover:underline text-sm">
-            ← Volver
-          </Link>
-          <h1 className="text-2xl font-serif font-bold text-cartistry-text mt-2">Analítica · Equipo</h1>
-        </div>
-      </header>
+    <main className="px-6 py-10 lg:px-10 lg:py-12">
 
-      <div className="max-w-6xl mx-auto px-6 py-8 space-y-8">
+      <div className="max-w-6xl mx-auto space-y-8">
+        <PageHeader label="Analítica" title="Equipo" />
+
         {/* Filtros */}
         <div className="flex flex-wrap items-end gap-4 bg-cartistry-surface border border-cartistry-border rounded p-4">
           {stores.length > 0 && (
             <div>
-              <label className="block text-xs text-cartistry-text-secondary mb-1">Tienda</label>
+              <label className="eyebrow block mb-1.5">Tienda</label>
               <select
                 value={storeId}
                 onChange={(e) => setStoreId(e.target.value)}
@@ -251,7 +245,7 @@ export default function AnaliticaEquipoPage() {
             </div>
           )}
           <div>
-            <label className="block text-xs text-cartistry-text-secondary mb-1">Desde</label>
+            <label className="eyebrow block mb-1.5">Desde</label>
             <input
               type="date"
               value={desde}
@@ -260,7 +254,7 @@ export default function AnaliticaEquipoPage() {
             />
           </div>
           <div>
-            <label className="block text-xs text-cartistry-text-secondary mb-1">Hasta</label>
+            <label className="eyebrow block mb-1.5">Hasta</label>
             <input
               type="date"
               value={hasta}
@@ -269,7 +263,7 @@ export default function AnaliticaEquipoPage() {
             />
           </div>
           <div>
-            <label className="block text-xs text-cartistry-text-secondary mb-1">Método de pago</label>
+            <label className="eyebrow block mb-1.5">Método de pago</label>
             <select
               value={metodo}
               onChange={(e) => setMetodo(e.target.value)}

@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { PLANES, planInfo, type PlanKey } from '@/lib/admin';
+import { PLANES, type PlanKey } from '@/lib/admin';
 import {
   loadBrands,
   loadInvoices,
@@ -127,13 +127,13 @@ export default function AdminHomePage() {
             <div className="flex flex-wrap gap-3">
               <Link
                 href="/admin/facturacion"
-                className="px-4 py-2 rounded text-sm font-medium bg-cartistry-cta text-cartistry-cta-text hover:opacity-90 transition"
+                className="inline-flex items-center justify-center gap-2 h-10 px-4 rounded-[2px] text-sm font-medium bg-ink text-surface hover:bg-[#282c33] transition-colors disabled:opacity-40 disabled:pointer-events-none"
               >
                 Ir a facturación →
               </Link>
               <Link
                 href="/admin/empresas"
-                className="px-4 py-2 rounded text-sm font-medium border border-cartistry-border text-cartistry-accent hover:bg-cartistry-bg transition"
+                className="inline-flex items-center justify-center gap-2 h-10 px-4 rounded-[2px] text-sm font-medium bg-surface text-ink shadow-[inset_0_0_0_1px_var(--line)] hover:bg-sunk transition-colors disabled:opacity-40 disabled:pointer-events-none"
               >
                 Ver empresas
               </Link>

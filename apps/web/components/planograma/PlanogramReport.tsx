@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { Document, Page, Text, View, Image, StyleSheet, Svg, Circle, Rect, G } from '@react-pdf/renderer';
+import { formatEURShort as fmtEur, formatInt as fmtNum, formatPct as fmtPct } from '@/lib/format';
 
 const palette = {
   ink: '#1A1714',
@@ -620,10 +621,6 @@ function buildProxyUrl(url: string): string {
   return `${origin}/api/image-proxy?url=${encodeURIComponent(url)}`;
 }
 
-const fmtEur = (n: number) =>
-  '€' + Math.round(n).toLocaleString('es-ES');
-const fmtPct = (n: number) => `${Math.round(n)}%`;
-const fmtNum = (n: number) => Math.round(n).toLocaleString('es-ES');
 
 function flagColor(kind: 'g' | 'a' | 'r' | 'n'): string {
   if (kind === 'g') return palette.green;

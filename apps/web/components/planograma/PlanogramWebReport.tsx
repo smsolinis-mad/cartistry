@@ -102,6 +102,16 @@ export function PlanogramWebReport({ data }: { data: ReportData }) {
           {data.muebles.map((mueble) => {
             const asigs = mueble.assignmentsDelMueble || [];
             const goldenRow = Math.floor(mueble.num_filas / 2);
+            // Índice hueco → productos, en un solo recorrido. Antes se filtraba
+            // la lista entera de asignaciones una vez por celda del mueble.
+            const porHueco = new Map<string, typeof asigs>();
+            for (const p of asigs) {
+              const parts = p.position?.split('_') || [];
+              const clave = `${parts[parts.length - 2]}_${parts[parts.length - 1]}`;
+              const grupo = porHueco.get(clave);
+              if (grupo) grupo.push(p);
+              else porHueco.set(clave, [p]);
+            }
             return (
               <div key={mueble.id} className="bg-cartistry-surface border border-cartistry-border rounded p-4">
                 <div className="flex flex-wrap items-baseline justify-between gap-2 mb-3">
@@ -131,13 +141,7 @@ export function PlanogramWebReport({ data }: { data: ReportData }) {
                           style={{ gridTemplateColumns: `repeat(${mueble.num_columnas}, minmax(0, 1fr))` }}
                         >
                           {Array.from({ length: mueble.num_columnas }).map((_, colIdx) => {
-                            const productos = asigs.filter((p) => {
-                              const parts = p.position?.split('_') || [];
-                              return (
-                                parts[parts.length - 1] === String(fila) &&
-                                parts[parts.length - 2] === String(colIdx)
-                              );
-                            });
+                            const productos = porHueco.get(`${colIdx}_${fila}`) || [];
                             return (
                               <div
                                 key={colIdx}

@@ -2,13 +2,12 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import { getUserId } from '@/lib/auth';
-import { downloadCSV, PLANTILLA_PRODUCTOS_CSV } from '@/lib/csv-download';
 import { CSVUploader, type CSVData } from '@/components/csv/CSVUploader';
 import { CSVPreview } from '@/components/csv/CSVPreview';
 import { ExportButton } from '@/components/analitica/ExportButton';
+import { Card, CardHeader, EmptyState, PageHeader } from '@/components/ui';
 
 interface Product {
   id: string;
@@ -207,22 +206,30 @@ export default function ProductosPage() {
         insertedCount += batch.length;
       }
 
-      // Actualizar productos existentes (en batches de 1000)
-      for (let i = 0; i < productsToUpdate.length; i += 1000) {
-        const batch = productsToUpdate.slice(i, i + 1000);
-
-        for (const product of batch) {
-          const { error: updateError } = await supabase
-            .from('products')
-            .update(product)
-            .eq('store_id', storeId)
-            .eq('ean', product.ean);
-
-          if (updateError) {
-            throw new Error(`Error al actualizar producto ${product.ean}: ${updateError.message}`);
-          }
-          updatedCount += 1;
+      // Actualizar productos existentes. Supabase no permite actualizar varias
+      // filas con valores distintos en una sola llamada, así que va una por
+      // producto — pero en tandas concurrentes: en serie, un catálogo de 500
+      // referencias son 500 viajes de ida y vuelta encadenados.
+      const CONCURRENCIA = 20;
+      for (let i = 0; i < productsToUpdate.length; i += CONCURRENCIA) {
+        const tanda = productsToUpdate.slice(i, i + CONCURRENCIA);
+        const resultados = await Promise.all(
+          tanda.map((product) =>
+            supabase
+              .from('products')
+              .update(product)
+              .eq('store_id', storeId)
+              .eq('ean', product.ean)
+              .then(({ error }) => ({ ean: product.ean, error }))
+          )
+        );
+        const fallo = resultados.find((r) => r.error);
+        if (fallo) {
+          throw new Error(
+            `Error al actualizar producto ${fallo.ean}: ${fallo.error!.message}`
+          );
         }
+        updatedCount += tanda.length;
       }
 
       setImportedCount(insertedCount + updatedCount);
@@ -237,18 +244,14 @@ export default function ProductosPage() {
   };
 
   return (
-    <main className="min-h-screen bg-cartistry-bg">
-      <header className="bg-cartistry-surface border-b border-cartistry-border">
-        <div className="max-w-6xl mx-auto px-6 py-4 flex items-end justify-between gap-4">
-          <div>
-            <Link href="/dashboard" className="text-cartistry-accent hover:underline text-sm">
-              ← Volver
-            </Link>
-            <h1 className="text-2xl font-serif font-bold text-cartistry-text mt-2">
-              Fase 2: Catálogo de productos
-            </h1>
-          </div>
-          <ExportButton
+    <main className="px-6 py-10 lg:px-10 lg:py-12">
+
+      <div className="max-w-6xl mx-auto">
+        <PageHeader
+          label="Tienda"
+          title="Catálogo de productos"
+          description="Un CSV al año con EAN, precio, margen y stock. Se valida línea a línea antes de guardar."
+          actions={<><ExportButton
             filenameBase="catalogo_productos"
             headers={[
               'Tienda',
@@ -296,39 +299,29 @@ export default function ProductosPage() {
               p.unidades ?? 0,
               p['URL Imagen'] || p.imagen_url || '',
             ])}
-          />
-        </div>
-      </header>
+          /></>}
+        />
 
-      <div className="max-w-6xl mx-auto px-6 py-12">
         {step === 'upload' && (
           <div className="space-y-6">
-            <div>
-              <h2 className="text-xl font-serif font-bold text-cartistry-text mb-2">
-                Sube tu catálogo de productos
-              </h2>
-            </div>
-
-            <div className="grid md:grid-cols-2 gap-6">
-              {/* Botón de descarga */}
-              <a
-                href="/plantilla_productos.csv"
-                download
-                className="p-6 bg-cartistry-surface rounded border border-cartistry-border hover:border-cartistry-accent hover:bg-cartistry-bg transition cursor-pointer flex items-center justify-center min-h-24"
-              >
-                <p className="text-sm font-medium text-cartistry-text">
-                  📥 Descargar plantilla CSV
-                </p>
-              </a>
-
-              {/* Uploader */}
-              <div className="p-6 bg-cartistry-surface rounded border border-cartistry-border">
-                <p className="text-sm font-medium text-cartistry-text mb-4">
-                  📤 Sube tu catálogo
-                </p>
+            <Card>
+              <CardHeader
+                label="Carga anual"
+                title="Sube tu catálogo"
+                actions={
+                  <a
+                    href="/plantilla_productos.csv"
+                    download
+                    className="inline-flex items-center h-8 px-3 rounded-[2px] text-[13px] font-medium bg-surface text-ink shadow-[inset_0_0_0_1px_var(--line)] hover:bg-sunk transition-colors"
+                  >
+                    Descargar plantilla
+                  </a>
+                }
+              />
+              <div className="p-4">
                 <CSVUploader onDataLoaded={handleDataLoaded} />
               </div>
-            </div>
+            </Card>
 
             {/* Listado de productos existentes */}
             {!loadingProducts && (
@@ -337,7 +330,12 @@ export default function ProductosPage() {
                   const validProducts = products.filter(p => p.nombre && (p.ean || p.pvp > 0 || p.precio_compra > 0));
 
                   if (validProducts.length === 0) {
-                    return <p className="text-cartistry-text-secondary text-sm">No hay productos dados de alta aún</p>;
+                    return (
+                      <EmptyState
+                        title="El catálogo está vacío"
+                        description="Descarga la plantilla, rellénala con tu surtido y súbela. Cartistry validará cada línea antes de guardar nada."
+                      />
+                    );
                   }
 
                   return (
@@ -423,14 +421,14 @@ export default function ProductosPage() {
               <button
                 onClick={() => setStep('upload')}
                 disabled={loading}
-                className="px-6 py-2 border border-cartistry-border text-cartistry-accent rounded font-medium hover:bg-cartistry-bg transition disabled:opacity-50"
+                className="inline-flex items-center justify-center gap-2 h-10 px-4 rounded-[2px] text-sm font-medium bg-surface text-ink shadow-[inset_0_0_0_1px_var(--line)] hover:bg-sunk transition-colors disabled:opacity-40 disabled:pointer-events-none"
               >
                 ← Volver
               </button>
               <button
                 onClick={handleConfirm}
                 disabled={loading}
-                className="px-6 py-2 bg-cartistry-cta text-cartistry-cta-text rounded font-medium hover:opacity-90 transition disabled:opacity-50"
+                className="inline-flex items-center justify-center gap-2 h-10 px-4 rounded-[2px] text-sm font-medium bg-ink text-surface hover:bg-[#282c33] transition-colors disabled:opacity-40 disabled:pointer-events-none"
               >
                 {loading ? `Guardando ${csvData.rows.length} productos...` : 'Confirmar y guardar'}
               </button>
@@ -466,7 +464,7 @@ export default function ProductosPage() {
 
             <button
               onClick={() => router.push('/dashboard')}
-              className="px-6 py-2 bg-cartistry-cta text-cartistry-cta-text rounded font-medium hover:opacity-90 transition"
+              className="inline-flex items-center justify-center gap-2 h-10 px-4 rounded-[2px] text-sm font-medium bg-ink text-surface hover:bg-[#282c33] transition-colors disabled:opacity-40 disabled:pointer-events-none"
             >
               Continuar
             </button>

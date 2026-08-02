@@ -1,8 +1,8 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import Link from 'next/link';
 import { isCajaAbierta, abrirCaja, cerrarCaja } from '@/lib/caja-estado';
+import { PageHeader } from '@/components/ui';
 
 // Denominaciones en céntimos para evitar errores de coma flotante
 const DENOMINACIONES = [1, 2, 5, 10, 20, 50, 100, 200, 500, 1000, 2000, 5000, 10000, 20000, 50000];
@@ -117,27 +117,13 @@ export default function AperturaCierrePage() {
         : 'text-red-700';
 
   return (
-    <main className="min-h-screen bg-cartistry-bg">
-      {/* Aviso superior */}
-      <div className="bg-cartistry-bg-secondary border-b border-cartistry-border">
-        <div className="max-w-4xl mx-auto px-6 py-2 text-center text-xs text-cartistry-text-secondary">
-          Revisa el conteo antes de cerrar. Una vez cerrada la caja no podrás editar los importes del día.
-        </div>
-      </div>
-
-      <header className="bg-cartistry-surface border-b border-cartistry-border">
-        <div className="max-w-4xl mx-auto px-6 py-4">
-          <Link href="/dashboard/ventas" className="text-cartistry-accent hover:underline text-sm">
-            ← Volver
-          </Link>
-          <h1 className="text-2xl font-serif font-bold text-cartistry-text mt-2">Cierre de caja</h1>
-          <p className="text-sm text-cartistry-text-secondary mt-1">
-            Cierra tu caja para finalizar los pagos y ventas del día.
-          </p>
-        </div>
-      </header>
-
-      <div className="max-w-7xl mx-auto px-6 py-10 space-y-8">
+    <main className="px-6 py-10 lg:px-10 lg:py-12">
+      <div className="max-w-7xl mx-auto space-y-8">
+        <PageHeader
+          label="Ventas"
+          title="Cierre de caja"
+          description="Cierra la caja para cuadrar los pagos y las ventas del día. Una vez cerrada no podrás editar los importes."
+        />
         {/* Estado de la caja */}
         <div
           className={`flex flex-wrap items-center justify-between gap-4 rounded border px-4 py-3 ${
@@ -155,7 +141,7 @@ export default function AperturaCierrePage() {
           {abierta === false && (
             <button
               onClick={handleAbrir}
-              className="px-4 py-2 rounded text-sm font-medium bg-cartistry-cta text-cartistry-cta-text hover:opacity-90 transition"
+              className="inline-flex items-center justify-center gap-2 h-10 px-4 rounded-[2px] text-sm font-medium bg-ink text-surface hover:bg-[#282c33] transition-colors disabled:opacity-40 disabled:pointer-events-none"
             >
               Abrir caja
             </button>
@@ -406,7 +392,7 @@ export default function AperturaCierrePage() {
               type="button"
               onClick={handleCerrar}
               disabled={!abierta}
-              className="w-full px-6 py-3 bg-cartistry-cta text-cartistry-cta-text rounded font-medium hover:opacity-90 transition disabled:opacity-50"
+              className="inline-flex items-center justify-center gap-2 h-10 px-4 rounded-[2px] text-sm font-medium bg-ink text-surface hover:bg-[#282c33] transition-colors disabled:opacity-40 disabled:pointer-events-none w-full"
             >
               {abierta ? 'Cerrar caja' : 'Caja ya cerrada'}
             </button>

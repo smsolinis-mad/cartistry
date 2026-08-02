@@ -5,6 +5,8 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { v5 as uuidv5 } from 'uuid';
 import { setUserCookie } from '@/lib/auth';
+import { AuthShell } from '@/components/auth/AuthShell';
+import { Alert, Button, Field, Input } from '@/components/ui';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -21,7 +23,7 @@ export default function LoginPage() {
     try {
       // Validación simple (TODO: conectar a Supabase cuando auth funcione)
       if (!email || !password) {
-        setError('Email y contraseña son obligatorios');
+        setError('Escribe tu email y tu contraseña para entrar.');
         return;
       }
 
@@ -32,11 +34,11 @@ export default function LoginPage() {
       setUserCookie({ id: userId, email, loggedIn: true });
 
       // Pequeño delay para que la cookie se escriba
-      await new Promise(resolve => setTimeout(resolve, 100));
+      await new Promise((resolve) => setTimeout(resolve, 100));
 
       router.push('/dashboard');
     } catch (err) {
-      setError('Error al iniciar sesión');
+      setError('No se ha podido iniciar sesión. Inténtalo otra vez.');
       console.error(err);
     } finally {
       setLoading(false);
@@ -44,71 +46,49 @@ export default function LoginPage() {
   };
 
   return (
-    <main className="min-h-screen flex items-center justify-center px-6 bg-cartistry-bg">
-      <div className="w-full max-w-md">
-        {/* Logo */}
-        <Link href="/" className="flex justify-center mb-8">
-          <span className="text-2xl font-serif font-bold text-cartistry-text">Cartistry</span>
-        </Link>
+    <AuthShell
+      title="Entra a tus lineales."
+      description="Tus planogramas, tus ventas y tus tiendas, donde los dejaste."
+      footer={
+        <>
+          ¿Todavía no tienes cuenta?{' '}
+          <Link href="/registro" className="text-ink underline underline-offset-4">
+            Crear cuenta
+          </Link>
+        </>
+      }
+    >
+      <form onSubmit={handleSubmit} className="space-y-5">
+        {error ? <Alert>{error}</Alert> : null}
 
-        {/* Form */}
-        <div className="bg-cartistry-surface rounded border border-cartistry-border p-8">
-          <h1 className="text-2xl font-serif font-bold text-cartistry-text text-center mb-6">
-            Iniciar sesión
-          </h1>
+        <Field label="Email" htmlFor="email">
+          <Input
+            id="email"
+            type="email"
+            autoComplete="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="tu@email.com"
+            required
+          />
+        </Field>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {error && (
-              <div className="p-3 bg-red-50 border border-red-200 text-red-800 rounded text-sm">
-                {error}
-              </div>
-            )}
+        <Field label="Contraseña" htmlFor="password">
+          <Input
+            id="password"
+            type="password"
+            autoComplete="current-password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="••••••••"
+            required
+          />
+        </Field>
 
-            <div>
-              <label className="block text-sm font-medium text-cartistry-text mb-2">
-                Email
-              </label>
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-4 py-2 border border-cartistry-border rounded text-sm bg-white text-cartistry-text placeholder-cartistry-text-secondary focus:outline-none focus:ring-2 focus:ring-cartistry-accent"
-                placeholder="tu@email.com"
-                required
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-cartistry-text mb-2">
-                Contraseña
-              </label>
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-4 py-2 border border-cartistry-border rounded text-sm bg-white text-cartistry-text placeholder-cartistry-text-secondary focus:outline-none focus:ring-2 focus:ring-cartistry-accent"
-                placeholder="••••••••"
-                required
-              />
-            </div>
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full py-2 bg-cartistry-cta text-cartistry-cta-text rounded font-medium hover:opacity-90 transition disabled:opacity-50"
-            >
-              {loading ? 'Iniciando...' : 'Iniciar sesión'}
-            </button>
-          </form>
-
-          <div className="mt-6 text-center text-sm text-cartistry-text-secondary">
-            ¿No tienes cuenta?{' '}
-            <Link href="/registro" className="text-cartistry-accent font-medium hover:underline">
-              Registrarse
-            </Link>
-          </div>
-        </div>
-      </div>
-    </main>
+        <Button type="submit" size="lg" disabled={loading} className="w-full">
+          {loading ? 'Entrando…' : 'Iniciar sesión'}
+        </Button>
+      </form>
+    </AuthShell>
   );
 }

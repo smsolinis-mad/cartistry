@@ -1,9 +1,9 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import { getUserId } from '@/lib/auth';
+import { PageHeader } from '@/components/ui';
 
 interface Store {
   id: string;
@@ -129,16 +129,12 @@ export default function PettyCashPage() {
   };
 
   return (
-    <main className="min-h-screen bg-cartistry-bg">
-      <header className="bg-cartistry-surface border-b border-cartistry-border">
-        <div className="max-w-5xl mx-auto px-6 py-4 flex flex-wrap items-end justify-between gap-4">
-          <div>
-            <Link href="/dashboard/ventas" className="text-cartistry-accent hover:underline text-sm">
-              ← Volver
-            </Link>
-            <h1 className="text-2xl font-serif font-bold text-cartistry-text mt-2">Gestión de efectivo</h1>
-          </div>
-          {stores.length > 1 && (
+    <main className="px-6 py-10 lg:px-10 lg:py-12">
+
+      <div className="max-w-5xl mx-auto">
+        <PageHeader
+          title="Gestión de efectivo"
+          actions={<>{stores.length > 1 && (
             <select
               value={storeId}
               onChange={(e) => setStoreId(e.target.value)}
@@ -150,11 +146,9 @@ export default function PettyCashPage() {
                 </option>
               ))}
             </select>
-          )}
-        </div>
-      </header>
+          )}</>}
+        />
 
-      <div className="max-w-5xl mx-auto px-6 py-8">
         {stores.length === 0 && !loading ? (
           <p className="text-cartistry-text-secondary text-sm">No tienes tiendas configuradas todavía.</p>
         ) : (
@@ -176,7 +170,7 @@ export default function PettyCashPage() {
                 </button>
                 <button
                   onClick={() => abrir('anadir')}
-                  className="px-4 py-2 rounded text-sm font-medium bg-cartistry-cta text-cartistry-cta-text hover:opacity-90 transition"
+                  className="inline-flex items-center justify-center gap-2 h-10 px-4 rounded-[2px] text-sm font-medium bg-ink text-surface hover:bg-[#282c33] transition-colors disabled:opacity-40 disabled:pointer-events-none"
                 >
                   Añadir efectivo
                 </button>
@@ -191,7 +185,7 @@ export default function PettyCashPage() {
                 </h3>
                 <div className="grid sm:grid-cols-[160px_1fr_auto] gap-4 items-end">
                   <div>
-                    <label className="block text-xs text-cartistry-text-secondary mb-1">Importe (€)</label>
+                    <label className="eyebrow block mb-1.5">Importe (€)</label>
                     <input
                       type="number"
                       min={0}
@@ -203,7 +197,7 @@ export default function PettyCashPage() {
                     />
                   </div>
                   <div>
-                    <label className="block text-xs text-cartistry-text-secondary mb-1">Motivo</label>
+                    <label className="eyebrow block mb-1.5">Motivo</label>
                     <input
                       type="text"
                       value={motivo}
@@ -216,14 +210,14 @@ export default function PettyCashPage() {
                     <button
                       onClick={() => setModo(null)}
                       disabled={guardando}
-                      className="px-4 py-2 rounded text-sm font-medium border border-cartistry-border text-cartistry-accent hover:bg-cartistry-bg transition disabled:opacity-50"
+                      className="inline-flex items-center justify-center gap-2 h-10 px-4 rounded-[2px] text-sm font-medium bg-surface text-ink shadow-[inset_0_0_0_1px_var(--line)] hover:bg-sunk transition-colors disabled:opacity-40 disabled:pointer-events-none"
                     >
                       Cancelar
                     </button>
                     <button
                       onClick={guardar}
                       disabled={guardando}
-                      className="px-4 py-2 rounded text-sm font-medium bg-cartistry-cta text-cartistry-cta-text hover:opacity-90 transition disabled:opacity-50"
+                      className="inline-flex items-center justify-center gap-2 h-10 px-4 rounded-[2px] text-sm font-medium bg-ink text-surface hover:bg-[#282c33] transition-colors disabled:opacity-40 disabled:pointer-events-none"
                     >
                       {guardando ? 'Guardando...' : 'Guardar'}
                     </button>

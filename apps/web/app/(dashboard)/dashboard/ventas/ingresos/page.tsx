@@ -1,9 +1,9 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import { getUserId } from '@/lib/auth';
+import { PageHeader } from '@/components/ui';
 
 interface Store {
   id: string;
@@ -163,16 +163,13 @@ export default function IngresosPage() {
   };
 
   return (
-    <main className="min-h-screen bg-cartistry-bg">
-      <header className="bg-cartistry-surface border-b border-cartistry-border">
-        <div className="max-w-5xl mx-auto px-6 py-4 flex flex-wrap items-end justify-between gap-4">
-          <div>
-            <Link href="/dashboard/ventas" className="text-cartistry-accent hover:underline text-sm">
-              ← Volver
-            </Link>
-            <h1 className="text-2xl font-serif font-bold text-cartistry-text mt-2">Ventas · Ingresos</h1>
-          </div>
-          {stores.length > 1 && (
+    <main className="px-6 py-10 lg:px-10 lg:py-12">
+
+      <div className="max-w-5xl mx-auto space-y-6">
+        <PageHeader
+          label="Ventas"
+          title="Ingresos"
+          actions={<>{stores.length > 1 && (
             <select
               value={storeId}
               onChange={(e) => setStoreId(e.target.value)}
@@ -184,11 +181,9 @@ export default function IngresosPage() {
                 </option>
               ))}
             </select>
-          )}
-        </div>
-      </header>
+          )}</>}
+        />
 
-      <div className="max-w-5xl mx-auto px-6 py-8 space-y-6">
         {stores.length === 0 && !loading ? (
           <p className="text-cartistry-text-secondary text-sm">No tienes tiendas configuradas todavía.</p>
         ) : (
@@ -211,7 +206,7 @@ export default function IngresosPage() {
                   {formatEUR(totales.petty)}
                 </p>
               </div>
-              <div className="bg-cartistry-cta text-cartistry-cta-text rounded p-4">
+              <div className="inline-flex items-center justify-center gap-2 h-10 px-4 rounded-[2px] text-sm font-medium bg-ink text-surface hover:bg-[#282c33] transition-colors disabled:opacity-40 disabled:pointer-events-none">
                 <p className="text-xs uppercase tracking-wider font-bold opacity-80 mb-1">
                   Total en tienda
                 </p>
@@ -223,7 +218,7 @@ export default function IngresosPage() {
             <div className="flex justify-end">
               <button
                 onClick={() => setMostrarForm((v) => !v)}
-                className="px-4 py-2 rounded text-sm font-medium bg-cartistry-cta text-cartistry-cta-text hover:opacity-90 transition"
+                className="inline-flex items-center justify-center gap-2 h-10 px-4 rounded-[2px] text-sm font-medium bg-ink text-surface hover:bg-[#282c33] transition-colors disabled:opacity-40 disabled:pointer-events-none"
               >
                 {mostrarForm ? 'Cancelar' : '+ Añadir ingreso'}
               </button>
@@ -233,7 +228,7 @@ export default function IngresosPage() {
               <div className="bg-cartistry-surface border border-cartistry-border rounded p-4">
                 <div className="grid sm:grid-cols-[120px_140px_1fr_130px_120px_auto] gap-3 items-end">
                   <div>
-                    <label className="block text-xs text-cartistry-text-secondary mb-1">Tipo</label>
+                    <label className="eyebrow block mb-1.5">Tipo</label>
                     <select
                       value={tipo}
                       onChange={(e) => setTipo(e.target.value)}
@@ -244,7 +239,7 @@ export default function IngresosPage() {
                     </select>
                   </div>
                   <div>
-                    <label className="block text-xs text-cartistry-text-secondary mb-1">Categoría</label>
+                    <label className="eyebrow block mb-1.5">Categoría</label>
                     <select
                       value={categoria}
                       onChange={(e) => setCategoria(e.target.value)}
@@ -255,7 +250,7 @@ export default function IngresosPage() {
                     </select>
                   </div>
                   <div>
-                    <label className="block text-xs text-cartistry-text-secondary mb-1">Concepto</label>
+                    <label className="eyebrow block mb-1.5">Concepto</label>
                     <input
                       type="text"
                       value={concepto}
@@ -265,7 +260,7 @@ export default function IngresosPage() {
                     />
                   </div>
                   <div>
-                    <label className="block text-xs text-cartistry-text-secondary mb-1">Fecha</label>
+                    <label className="eyebrow block mb-1.5">Fecha</label>
                     <input
                       type="date"
                       value={fecha}
@@ -274,7 +269,7 @@ export default function IngresosPage() {
                     />
                   </div>
                   <div>
-                    <label className="block text-xs text-cartistry-text-secondary mb-1">Importe (€)</label>
+                    <label className="eyebrow block mb-1.5">Importe (€)</label>
                     <input
                       type="number"
                       min={0}
@@ -288,7 +283,7 @@ export default function IngresosPage() {
                   <button
                     onClick={guardar}
                     disabled={guardando}
-                    className="px-4 py-2 rounded text-sm font-medium bg-cartistry-cta text-cartistry-cta-text hover:opacity-90 transition disabled:opacity-50"
+                    className="inline-flex items-center justify-center gap-2 h-10 px-4 rounded-[2px] text-sm font-medium bg-ink text-surface hover:bg-[#282c33] transition-colors disabled:opacity-40 disabled:pointer-events-none"
                   >
                     {guardando ? 'Guardando...' : 'Guardar'}
                   </button>

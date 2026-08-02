@@ -4,8 +4,22 @@ import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import { getUserId } from '@/lib/auth';
-import { PDFDownloadLink } from '@react-pdf/renderer';
-import { PlanogramReport, type ReportData } from '@/components/planograma/PlanogramReport';
+import dynamic from 'next/dynamic';
+import type { ReportData } from '@/components/planograma/PlanogramReport';
+
+// El motor de PDF pesa ~550 kB: se carga al pulsar, no al abrir la página.
+const PlanogramPdfLink = dynamic(
+  () => import('@/components/planograma/PlanogramPdfLink'),
+  {
+    ssr: false,
+    loading: () => (
+      <span className="inline-flex items-center justify-center h-10 px-4 rounded-[2px] text-sm font-medium bg-sunk text-ink-3">
+        Preparando…
+      </span>
+    ),
+  }
+);
+import { PageHeader } from '@/components/ui';
 
 interface HistorialItem {
   id: string;
@@ -135,7 +149,7 @@ export default function HistorialPage() {
       }
 
       setItems((prev) => prev.filter((i) => i.id !== item.id));
-    } catch (err) {
+    } catch {
       setError('Error al borrar el planograma');
     } finally {
       setDeletingId(null);
@@ -163,19 +177,11 @@ export default function HistorialPage() {
   const hasActiveFilters = filterStoreId || filterDateFrom || filterDateTo;
 
   return (
-    <main className="min-h-screen bg-cartistry-bg">
-      <header className="bg-cartistry-surface border-b border-cartistry-border">
-        <div className="max-w-4xl mx-auto px-6 py-4">
-          <Link href="/dashboard" className="text-cartistry-accent hover:underline text-sm">
-            ← Volver
-          </Link>
-          <h1 className="text-2xl font-serif font-bold text-cartistry-text mt-2">
-            Historial de planogramas
-          </h1>
-        </div>
-      </header>
+    <main className="px-6 py-10 lg:px-10 lg:py-12">
 
-      <div className="max-w-4xl mx-auto px-6 py-12">
+      <div className="max-w-4xl mx-auto">
+        <PageHeader title="Historial de planogramas" />
+
         {loading && <p className="text-cartistry-text-secondary">Cargando…</p>}
 
         {error && (
@@ -191,7 +197,7 @@ export default function HistorialPage() {
             </p>
             <Link
               href="/dashboard/planograma"
-              className="inline-block mt-4 px-6 py-2 bg-cartistry-cta text-cartistry-cta-text rounded font-medium hover:opacity-90 transition"
+              className="inline-flex items-center justify-center gap-2 h-10 px-4 rounded-[2px] text-sm font-medium bg-ink text-surface hover:bg-[#282c33] transition-colors disabled:opacity-40 disabled:pointer-events-none mt-4"
             >
               Generar primer planograma
             </Link>
@@ -203,13 +209,13 @@ export default function HistorialPage() {
             <div className="bg-cartistry-surface border border-cartistry-border rounded p-4 mb-6">
               <div className="grid md:grid-cols-4 gap-3 items-end">
                 <div>
-                  <label className="block text-xs text-cartistry-text-secondary mb-1">
+                  <label className="eyebrow block mb-1.5">
                     Tienda
                   </label>
                   <select
                     value={filterStoreId}
                     onChange={(e) => setFilterStoreId(e.target.value)}
-                    className="w-full px-3 py-2 border border-cartistry-border rounded text-sm bg-white text-cartistry-text focus:outline-none focus:ring-2 focus:ring-cartistry-accent"
+                    className="w-full h-10 px-3 bg-surface text-ink text-sm rounded-[2px] shadow-[inset_0_0_0_1px_var(--line)] placeholder:text-ink-3 focus:outline-none focus:shadow-[inset_0_0_0_2px_var(--ink)] transition-shadow"
                   >
                     <option value="">Todas</option>
                     {stores.map((s) => (
@@ -218,32 +224,32 @@ export default function HistorialPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs text-cartistry-text-secondary mb-1">
+                  <label className="eyebrow block mb-1.5">
                     Desde
                   </label>
                   <input
                     type="date"
                     value={filterDateFrom}
                     onChange={(e) => setFilterDateFrom(e.target.value)}
-                    className="w-full px-3 py-2 border border-cartistry-border rounded text-sm bg-white text-cartistry-text focus:outline-none focus:ring-2 focus:ring-cartistry-accent"
+                    className="w-full h-10 px-3 bg-surface text-ink text-sm rounded-[2px] shadow-[inset_0_0_0_1px_var(--line)] placeholder:text-ink-3 focus:outline-none focus:shadow-[inset_0_0_0_2px_var(--ink)] transition-shadow"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs text-cartistry-text-secondary mb-1">
+                  <label className="eyebrow block mb-1.5">
                     Hasta
                   </label>
                   <input
                     type="date"
                     value={filterDateTo}
                     onChange={(e) => setFilterDateTo(e.target.value)}
-                    className="w-full px-3 py-2 border border-cartistry-border rounded text-sm bg-white text-cartistry-text focus:outline-none focus:ring-2 focus:ring-cartistry-accent"
+                    className="w-full h-10 px-3 bg-surface text-ink text-sm rounded-[2px] shadow-[inset_0_0_0_1px_var(--line)] placeholder:text-ink-3 focus:outline-none focus:shadow-[inset_0_0_0_2px_var(--ink)] transition-shadow"
                   />
                 </div>
                 <div>
                   <button
                     onClick={clearFilters}
                     disabled={!hasActiveFilters}
-                    className="w-full px-3 py-2 border border-cartistry-border rounded text-sm text-cartistry-accent hover:bg-cartistry-bg transition disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="inline-flex items-center justify-center gap-2 h-10 px-4 rounded-[2px] text-sm font-medium bg-surface text-ink shadow-[inset_0_0_0_1px_var(--line)] hover:bg-sunk transition-colors disabled:opacity-40 disabled:pointer-events-none w-full"
                   >
                     Limpiar filtros
                   </button>
@@ -292,7 +298,7 @@ export default function HistorialPage() {
                         className="px-3 py-2 border border-red-300 text-red-700 rounded text-sm font-medium hover:bg-red-50 transition disabled:opacity-50"
                         title="Borrar planograma"
                       >
-                        {deletingId === item.id ? '…' : '🗑'}
+                        {deletingId === item.id ? 'Borrando…' : 'Borrar'}
                       </button>
                     </div>
                   </div>
@@ -314,27 +320,14 @@ function LazyPdfButton({ reportData, fileName }: { reportData: ReportData; fileN
     return (
       <button
         onClick={() => setArmed(true)}
-        className="px-4 py-2 bg-cartistry-cta text-cartistry-cta-text rounded text-sm font-medium hover:opacity-90 transition"
+        className="inline-flex items-center justify-center gap-2 h-10 px-4 rounded-[2px] text-sm font-medium bg-ink text-surface hover:bg-[#282c33] transition-colors disabled:opacity-40 disabled:pointer-events-none"
       >
-        📥 Descargar PDF
+        Descargar PDF
       </button>
     );
   }
 
   return (
-    <PDFDownloadLink document={<PlanogramReport data={reportData} />} fileName={fileName}>
-      {({ loading: pdfLoading, url }) => (
-        <a
-          href={url || undefined}
-          className={`px-4 py-2 rounded text-sm font-medium transition inline-block ${
-            pdfLoading
-              ? 'bg-cartistry-bg-secondary text-cartistry-text-secondary pointer-events-none'
-              : 'bg-cartistry-cta text-cartistry-cta-text hover:opacity-90'
-          }`}
-        >
-          {pdfLoading ? 'Preparando…' : '📥 Descargar PDF'}
-        </a>
-      )}
-    </PDFDownloadLink>
+    <PlanogramPdfLink data={reportData} fileName={fileName} label="Descargar PDF" />
   );
 }

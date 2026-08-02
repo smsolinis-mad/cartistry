@@ -1,6 +1,8 @@
 'use client';
 
+import { Download } from 'lucide-react';
 import { downloadExcel, timestamp, type ExcelRow } from '@/lib/excel-export';
+import { Button } from '@/components/ui';
 
 interface ExportButtonProps {
   filenameBase: string;
@@ -18,14 +20,16 @@ export function ExportButton({ filenameBase, headers, rows, disabled }: ExportBu
   const empty = !rows || rows.length === 0;
 
   return (
-    <button
+    <Button
       type="button"
+      variant="secondary"
+      size="sm"
       onClick={handleClick}
       disabled={disabled || empty}
-      className="px-4 py-2 bg-cartistry-cta text-cartistry-cta-text rounded text-sm font-medium hover:opacity-90 transition disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center gap-2"
-      title={empty ? 'No hay datos para exportar' : 'Descargar como Excel (.csv compatible)'}
+      title={empty ? 'No hay nada que exportar todavía' : 'Descargar en CSV, compatible con Excel'}
     >
-      📥 Exportar Excel
-    </button>
+      <Download size={14} strokeWidth={1.75} />
+      Exportar
+    </Button>
   );
 }

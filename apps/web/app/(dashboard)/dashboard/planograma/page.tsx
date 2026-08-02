@@ -4,18 +4,32 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import { getUserId } from '@/lib/auth';
-import { PDFDownloadLink } from '@react-pdf/renderer';
-import { PlanogramReport, type ReportData } from '@/components/planograma/PlanogramReport';
+import dynamic from 'next/dynamic';
+import type { ReportData } from '@/components/planograma/PlanogramReport';
 import { PlanogramWebReport } from '@/components/planograma/PlanogramWebReport';
+
+// El motor de PDF pesa ~550 kB: se carga al pulsar, no al abrir la página.
+const PlanogramPdfLink = dynamic(
+  () => import('@/components/planograma/PlanogramPdfLink'),
+  {
+    ssr: false,
+    loading: () => (
+      <span className="inline-flex items-center justify-center h-10 px-4 rounded-[2px] text-sm font-medium bg-sunk text-ink-3">
+        Preparando…
+      </span>
+    ),
+  }
+);
+import { PageHeader } from '@/components/ui';
 
 type Objective = 'promocion' | 'liquidacion' | 'aumentar_ventas' | 'aumentar_margen' | 'nueva_coleccion';
 
-const OBJECTIVES: Array<{ value: Objective; label: string; emoji: string; description: string }> = [
-  { value: 'nueva_coleccion', label: 'Nueva colección', emoji: '🆕', description: 'Entrada de nueva colección al punto de venta' },
-  { value: 'promocion', label: 'Promoción', emoji: '🎯', description: 'Ejecutar una campaña o acción promocional' },
-  { value: 'aumentar_ventas', label: 'Aumentar ventas', emoji: '📈', description: 'Maximizar unidades vendidas en el período' },
-  { value: 'liquidacion', label: 'Liquidación', emoji: '🗑️', description: 'Reducir stock y dar salida a producto parado' },
-  { value: 'aumentar_margen', label: 'Aumentar margen', emoji: '💰', description: 'Maximizar el margen neto de la tienda' },
+const OBJECTIVES: Array<{ value: Objective; label: string; description: string }> = [
+  { value: 'nueva_coleccion', label: 'Nueva colección', description: 'Entrada de nueva colección al punto de venta' },
+  { value: 'promocion', label: 'Promoción', description: 'Ejecutar una campaña o acción promocional' },
+  { value: 'aumentar_ventas', label: 'Aumentar ventas', description: 'Maximizar unidades vendidas en el período' },
+  { value: 'liquidacion', label: 'Liquidación', description: 'Reducir stock y dar salida a producto parado' },
+  { value: 'aumentar_margen', label: 'Aumentar margen', description: 'Maximizar el margen neto de la tienda' },
 ];
 
 const DURACIONES: Array<{ value: string; label: string; dias: number }> = [
@@ -222,11 +236,11 @@ export default function PlanogramaPage() {
         })) || [];
 
         const objectiveLabels: Record<Objective, string> = {
-          'promocion': '🎯 Promoción',
-          'liquidacion': '🗑️ Liquidación',
-          'aumentar_ventas': '📈 Aumentar ventas',
-          'aumentar_margen': '💰 Aumentar margen',
-          'nueva_coleccion': '🆕 Nueva colección',
+          'promocion': 'Promoción',
+          'liquidacion': 'Liquidación',
+          'aumentar_ventas': 'Aumentar ventas',
+          'aumentar_margen': 'Aumentar margen',
+          'nueva_coleccion': 'Nueva colección',
         };
 
         const assignedEans = new Set(Array.from(usedEans));
@@ -634,18 +648,14 @@ export default function PlanogramaPage() {
 
   if (loading) {
     return (
-      <main className="min-h-screen bg-cartistry-bg">
-        <header className="bg-cartistry-surface border-b border-cartistry-border">
-          <div className="max-w-4xl mx-auto px-6 py-4">
-            <Link href="/dashboard" className="text-cartistry-accent hover:underline text-sm">
-              ← Volver
-            </Link>
-            <h1 className="text-2xl font-serif font-bold text-cartistry-text mt-2">
-              Fase 4: Generar planograma
-            </h1>
-          </div>
-        </header>
-        <div className="max-w-4xl mx-auto px-6 py-12 text-center">
+      <main className="px-6 py-10 lg:px-10 lg:py-12">
+        <div className="max-w-4xl mx-auto text-center">
+        <PageHeader
+          label="Lineal"
+          title="Generar planograma"
+          description="Elige el objetivo y Cartistry coloca el surtido aplicando las 26 reglas."
+        />
+
           <p className="text-cartistry-text-secondary">Cargando datos...</p>
         </div>
       </main>
@@ -653,19 +663,15 @@ export default function PlanogramaPage() {
   }
 
   return (
-    <main className="min-h-screen bg-cartistry-bg">
-      <header className="bg-cartistry-surface border-b border-cartistry-border">
-        <div className="max-w-4xl mx-auto px-6 py-4">
-          <Link href="/dashboard" className="text-cartistry-accent hover:underline text-sm">
-            ← Volver
-          </Link>
-          <h1 className="text-2xl font-serif font-bold text-cartistry-text mt-2">
-            Fase 4: Generar planograma
-          </h1>
-        </div>
-      </header>
+    <main className="px-6 py-10 lg:px-10 lg:py-12">
 
-      <div className="max-w-6xl mx-auto px-6 py-12">
+      <div className="max-w-6xl mx-auto">
+        <PageHeader
+          label="Lineal"
+          title="Generar planograma"
+          description="Elige el objetivo y Cartistry coloca el surtido aplicando las 26 reglas."
+        />
+
         {error && (
           <div className="p-3 bg-red-50 border border-red-200 text-red-800 rounded text-sm mb-6">
             {error}
@@ -680,12 +686,12 @@ export default function PlanogramaPage() {
                 {userStores.length > 0 && (
                   <div>
                     <label className="block text-xs font-medium text-cartistry-text-secondary mb-1">
-                      🏬 Tienda
+                      Tienda
                     </label>
                     <select
                       value={selectedStoreId}
                       onChange={(e) => setSelectedStoreId(e.target.value)}
-                      className="w-full px-3 py-2 border border-cartistry-border rounded bg-white text-sm text-cartistry-text focus:outline-none focus:ring-2 focus:ring-cartistry-accent"
+                      className="w-full px-3 py-2 border border-cartistry-border rounded bg-white text-sm text-cartistry-text focus:outline-none focus:shadow-[inset_0_0_0_2px_var(--ink)]"
                     >
                       {userStores.map((s: any) => (
                         <option key={s.id} value={s.id}>{s.nombre}</option>
@@ -700,7 +706,7 @@ export default function PlanogramaPage() {
                   <select
                     value={selectedDuracion}
                     onChange={(e) => setSelectedDuracion(e.target.value)}
-                    className="w-full px-3 py-2 border border-cartistry-border rounded bg-white text-sm text-cartistry-text focus:outline-none focus:ring-2 focus:ring-cartistry-accent"
+                    className="w-full px-3 py-2 border border-cartistry-border rounded bg-white text-sm text-cartistry-text focus:outline-none focus:shadow-[inset_0_0_0_2px_var(--ink)]"
                   >
                     {DURACIONES.map((d) => (
                       <option key={d.value} value={d.value}>{d.label}</option>
@@ -709,15 +715,15 @@ export default function PlanogramaPage() {
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-cartistry-text-secondary mb-1">
-                    🎯 Objetivo
+                    Objetivo
                   </label>
                   <select
                     value={selectedObjective}
                     onChange={(e) => setSelectedObjective(e.target.value as Objective)}
-                    className="w-full px-3 py-2 border border-cartistry-border rounded bg-white text-sm text-cartistry-text focus:outline-none focus:ring-2 focus:ring-cartistry-accent"
+                    className="w-full px-3 py-2 border border-cartistry-border rounded bg-white text-sm text-cartistry-text focus:outline-none focus:shadow-[inset_0_0_0_2px_var(--ink)]"
                   >
                     {OBJECTIVES.map((o) => (
-                      <option key={o.value} value={o.value}>{o.emoji} {o.label}</option>
+                      <option key={o.value} value={o.value}>{o.label}</option>
                     ))}
                   </select>
                 </div>
@@ -732,7 +738,7 @@ export default function PlanogramaPage() {
                   <button
                     onClick={generatePlanogram}
                     disabled={generatingPlanogram}
-                    className="px-8 py-3 bg-cartistry-cta text-cartistry-cta-text rounded font-medium hover:opacity-90 transition disabled:opacity-50"
+                    className="inline-flex items-center justify-center gap-2 h-10 px-4 rounded-[2px] text-sm font-medium bg-ink text-surface hover:bg-[#282c33] transition-colors disabled:opacity-40 disabled:pointer-events-none"
                   >
                     {generatingPlanogram ? 'Generando planograma...' : '✨ Generar planograma'}
                   </button>
@@ -741,26 +747,17 @@ export default function PlanogramaPage() {
                     <button
                       onClick={guardarDiseno}
                       disabled={guardandoDiseno}
-                      className="px-8 py-3 bg-cartistry-cta text-cartistry-cta-text rounded font-medium hover:opacity-90 transition disabled:opacity-50"
+                      className="inline-flex items-center justify-center gap-2 h-10 px-4 rounded-[2px] text-sm font-medium bg-ink text-surface hover:bg-[#282c33] transition-colors disabled:opacity-40 disabled:pointer-events-none"
                     >
                       {guardandoDiseno ? 'Guardando...' : '💾 Guarda tu diseño'}
                     </button>
                   )}
 
                   {reportData.assignments && (
-                    <PDFDownloadLink
-                      document={<PlanogramReport data={reportData} />}
+                    <PlanogramPdfLink
+                      data={reportData}
                       fileName={`planograma_${reportData.store?.nombre?.replace(/\s+/g, '_')}.pdf`}
-                    >
-                      {({ loading: pdfLoading }) => (
-                        <button
-                          disabled={pdfLoading}
-                          className="px-8 py-3 bg-cartistry-cta text-cartistry-cta-text rounded font-medium hover:opacity-90 transition disabled:opacity-50"
-                        >
-                          {pdfLoading ? 'Generando PDF...' : '📥 Descarga tu informe'}
-                        </button>
-                      )}
-                    </PDFDownloadLink>
+                    />
                   )}
                 </div>
 

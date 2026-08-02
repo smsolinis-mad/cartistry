@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import Link from 'next/link';
+import { PageHeader } from '@/components/ui';
 
 type PlanKey = 'basico' | 'estandar' | 'avanzado';
 
@@ -90,19 +90,11 @@ export default function PlanPage() {
   const [selectedPlan, setSelectedPlan] = useState<PlanKey | null>(null);
 
   return (
-    <main className="min-h-screen bg-cartistry-bg">
-      <header className="bg-cartistry-surface border-b border-cartistry-border">
-        <div className="max-w-6xl mx-auto px-6 py-4">
-          <Link href="/dashboard" className="text-cartistry-accent hover:underline text-sm">
-            ← Volver
-          </Link>
-          <h1 className="text-2xl font-serif font-bold text-cartistry-text mt-2">
-            Configuración
-          </h1>
-        </div>
-      </header>
+    <main className="px-6 py-10 lg:px-10 lg:py-12">
 
-      <div className="max-w-6xl mx-auto px-6 py-12 space-y-6">
+      <div className="max-w-6xl mx-auto space-y-6">
+        <PageHeader title="Configuración" />
+
         <h2 className="text-xl font-serif font-bold text-cartistry-text">
           Elige tu Plan
         </h2>
@@ -120,7 +112,7 @@ export default function PlanPage() {
                 }`}
               >
                 {plan.badge && (
-                  <span className="absolute -top-3 right-4 bg-cartistry-cta text-cartistry-cta-text text-[10px] font-bold tracking-wider uppercase px-2 py-1 rounded-full">
+                  <span className="inline-flex items-center justify-center gap-2 h-10 px-4 rounded-[2px] text-sm font-medium bg-ink text-surface hover:bg-[#282c33] transition-colors disabled:opacity-40 disabled:pointer-events-none absolute right-4">
                     {plan.badge}
                   </span>
                 )}

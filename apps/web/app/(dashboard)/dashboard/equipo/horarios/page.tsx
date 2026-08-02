@@ -1,9 +1,10 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import { getUserId } from '@/lib/auth';
+import { PageHeader } from '@/components/ui';
+import { MESES_LARGO as MESES } from '@/lib/dates';
 
 interface Store {
   id: string;
@@ -58,10 +59,6 @@ interface Tarea {
   hecha: boolean;
 }
 
-const MESES = [
-  'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
-  'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre',
-];
 // getDay(): 0=domingo … 6=sábado. Orden de visualización: lunes primero.
 const DIAS_SEMANA = [
   { g: 1, label: 'Lunes', corto: 'Lun' },
@@ -339,7 +336,7 @@ export default function HorariosPage() {
   };
 
   return (
-    <main className="min-h-screen bg-cartistry-bg">
+    <main className="px-6 py-10 lg:px-10 lg:py-12">
       <style>{`
         @media print {
           aside { display: none !important; }
@@ -348,15 +345,12 @@ export default function HorariosPage() {
           main { background: #fff !important; }
         }
       `}</style>
-      <header className="bg-cartistry-surface border-b border-cartistry-border">
-        <div className="max-w-6xl mx-auto px-6 py-4 flex flex-wrap items-end justify-between gap-4">
-          <div>
-            <Link href="/dashboard/equipo/datos" className="text-cartistry-accent hover:underline text-sm">
-              ← Volver
-            </Link>
-            <h1 className="text-2xl font-serif font-bold text-cartistry-text mt-2">Equipo · Horarios</h1>
-          </div>
-          <div className="flex flex-wrap items-center gap-3 no-print">
+
+      <div className="max-w-6xl mx-auto space-y-4">
+        <PageHeader
+          label="Equipo"
+          title="Horarios"
+          actions={<><div className="flex flex-wrap items-center gap-3 no-print">
             {stores.length > 0 && (
               <select
                 value={storeId}
@@ -394,21 +388,19 @@ export default function HorariosPage() {
             </div>
             <button
               onClick={() => setConfigAbierta((v) => !v)}
-              className="px-3 py-2 rounded text-sm font-medium border border-cartistry-border text-cartistry-accent hover:bg-cartistry-bg transition"
+              className="inline-flex items-center justify-center gap-2 h-10 px-4 rounded-[2px] text-sm font-medium bg-surface text-ink shadow-[inset_0_0_0_1px_var(--line)] hover:bg-sunk transition-colors disabled:opacity-40 disabled:pointer-events-none"
             >
               Horario de apertura
             </button>
             <button
               onClick={() => window.print()}
-              className="px-3 py-2 rounded text-sm font-medium bg-cartistry-cta text-cartistry-cta-text hover:opacity-90 transition"
+              className="inline-flex items-center justify-center gap-2 h-10 px-4 rounded-[2px] text-sm font-medium bg-ink text-surface hover:bg-[#282c33] transition-colors disabled:opacity-40 disabled:pointer-events-none"
             >
               🖨️ Imprimir
             </button>
-          </div>
-        </div>
-      </header>
+          </div></>}
+        />
 
-      <div className="max-w-6xl mx-auto px-6 py-6 space-y-4">
         {stores.length === 0 && !loading ? (
           <p className="text-cartistry-text-secondary text-sm">No tienes tiendas configuradas todavía.</p>
         ) : (
@@ -460,7 +452,7 @@ export default function HorariosPage() {
                   <button
                     onClick={guardarConfig}
                     disabled={guardandoConfig}
-                    className="px-4 py-2 rounded text-sm font-medium bg-cartistry-cta text-cartistry-cta-text hover:opacity-90 transition disabled:opacity-50"
+                    className="inline-flex items-center justify-center gap-2 h-10 px-4 rounded-[2px] text-sm font-medium bg-ink text-surface hover:bg-[#282c33] transition-colors disabled:opacity-40 disabled:pointer-events-none"
                   >
                     {guardandoConfig ? 'Guardando...' : 'Guardar horario'}
                   </button>
@@ -489,7 +481,7 @@ export default function HorariosPage() {
               </div>
               {diasSinCubrir > 0 ? (
                 <div className="px-3 py-2 rounded bg-red-50 border border-red-200 text-red-800 text-sm font-medium">
-                  ⚠️ {diasSinCubrir} día{diasSinCubrir > 1 ? 's' : ''} sin cubrir este mes
+                  {diasSinCubrir} día{diasSinCubrir > 1 ? 's' : ''} sin cubrir este mes
                 </div>
               ) : (
                 <div className="px-3 py-2 rounded bg-green-50 border border-green-200 text-green-800 text-sm font-medium">
@@ -736,7 +728,7 @@ export default function HorariosPage() {
                     <button
                       onClick={asignarTurno}
                       disabled={guardandoTurno}
-                      className="px-3 py-2 rounded text-sm font-medium bg-cartistry-cta text-cartistry-cta-text hover:opacity-90 transition disabled:opacity-50"
+                      className="inline-flex items-center justify-center gap-2 h-10 px-4 rounded-[2px] text-sm font-medium bg-ink text-surface hover:bg-[#282c33] transition-colors disabled:opacity-40 disabled:pointer-events-none"
                     >
                       {guardandoTurno ? '...' : 'Añadir'}
                     </button>
@@ -813,7 +805,7 @@ export default function HorariosPage() {
                   <button
                     onClick={anadirTarea}
                     disabled={guardandoTarea || !tareaDesc.trim()}
-                    className="px-3 py-2 rounded text-sm font-medium bg-cartistry-cta text-cartistry-cta-text hover:opacity-90 transition disabled:opacity-50"
+                    className="inline-flex items-center justify-center gap-2 h-10 px-4 rounded-[2px] text-sm font-medium bg-ink text-surface hover:bg-[#282c33] transition-colors disabled:opacity-40 disabled:pointer-events-none"
                   >
                     {guardandoTarea ? '...' : 'Añadir'}
                   </button>

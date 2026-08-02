@@ -8,9 +8,9 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="min-h-screen bg-cartistry-bg">
+    <div className="min-h-screen bg-paper">
       <Sidebar />
-      <div className="ml-56 min-h-screen">{children}</div>
+      <div className="lg:ml-60 min-h-screen">{children}</div>
     </div>
   );
 }

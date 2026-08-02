@@ -14,12 +14,8 @@ import {
   type Invoice,
 } from '@/lib/admin-data';
 import { MetricCard } from '@/components/admin/AdminSidebar';
+import { MESES_LARGO as MESES, MESES as MESES_CORTOS } from '@/lib/dates';
 
-const MESES = [
-  'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
-  'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre',
-];
-const MESES_CORTOS = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
 
 type MetricKey = 'empresas' | 'tiendas' | 'facturacion';
 
@@ -320,7 +316,7 @@ export default function RatiosPage() {
                   <button
                     onClick={guardarForecast}
                     disabled={saving}
-                    className="px-4 py-2 rounded text-sm font-medium bg-cartistry-cta text-cartistry-cta-text hover:opacity-90 transition disabled:opacity-50"
+                    className="inline-flex items-center justify-center gap-2 h-10 px-4 rounded-[2px] text-sm font-medium bg-ink text-surface hover:bg-[#282c33] transition-colors disabled:opacity-40 disabled:pointer-events-none"
                   >
                     {saving ? 'Guardando...' : 'Guardar forecast'}
                   </button>
@@ -356,9 +352,9 @@ export default function RatiosPage() {
                         <col style={{ width: '7.5%' }} />
                         <col style={{ width: '7.5%' }} />
                       </colgroup>
-                      <thead className="bg-cartistry-bg/50">
+                      <thead className="bg-surface">
                         <tr className="text-cartistry-text-secondary">
-                          <th className="text-left px-2 py-2 font-medium">&nbsp;</th>
+                          <th className="eyebrow text-left font-normal px-2 py-2.5">&nbsp;</th>
                           {MESES_CORTOS.map((m, idx) => (
                             <th key={m} className="text-center px-1 py-2 font-medium" title={MESES[idx]}>
                               {m}

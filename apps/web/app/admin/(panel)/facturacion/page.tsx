@@ -138,7 +138,7 @@ export default function FacturacionPage() {
           <button
             onClick={generarFacturas}
             disabled={generating || brands.length === 0}
-            className="px-4 py-2 rounded text-sm font-medium bg-cartistry-cta text-cartistry-cta-text hover:opacity-90 transition disabled:opacity-50"
+            className="inline-flex items-center justify-center gap-2 h-10 px-4 rounded-[2px] text-sm font-medium bg-ink text-surface hover:bg-[#282c33] transition-colors disabled:opacity-40 disabled:pointer-events-none"
           >
             {generating ? 'Generando...' : 'Generar facturas del mes'}
           </button>
@@ -305,7 +305,7 @@ export default function FacturacionPage() {
               <div className="px-8 py-6">
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="text-xs text-cartistry-text-secondary border-b border-cartistry-border">
+                    <tr className="border-b border-line">
                       <th className="text-left font-medium py-2">Concepto</th>
                       <th className="text-right font-medium py-2">Importe</th>
                     </tr>
@@ -339,7 +339,7 @@ export default function FacturacionPage() {
               <div className="flex justify-end px-8 py-4 border-t border-cartistry-border">
                 <button
                   onClick={() => setFacturaAbierta(null)}
-                  className="px-4 py-2 rounded text-sm font-medium bg-cartistry-cta text-cartistry-cta-text hover:opacity-90 transition"
+                  className="inline-flex items-center justify-center gap-2 h-10 px-4 rounded-[2px] text-sm font-medium bg-ink text-surface hover:bg-[#282c33] transition-colors disabled:opacity-40 disabled:pointer-events-none"
                 >
                   Cerrar
                 </button>

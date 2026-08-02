@@ -1,9 +1,9 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import { getUserId } from '@/lib/auth';
+import { PageHeader } from '@/components/ui';
 
 interface Empleado {
   id: string;
@@ -151,25 +151,20 @@ export default function PeticionesPage() {
   };
 
   return (
-    <main className="min-h-screen bg-cartistry-bg">
-      <header className="bg-cartistry-surface border-b border-cartistry-border">
-        <div className="max-w-5xl mx-auto px-6 py-4 flex flex-wrap items-end justify-between gap-4">
-          <div>
-            <Link href="/dashboard/equipo/datos" className="text-cartistry-accent hover:underline text-sm">
-              ← Volver
-            </Link>
-            <h1 className="text-2xl font-serif font-bold text-cartistry-text mt-2">Equipo · Peticiones</h1>
-          </div>
-          <button
+    <main className="px-6 py-10 lg:px-10 lg:py-12">
+
+      <div className="max-w-5xl mx-auto space-y-5">
+        <PageHeader
+          label="Equipo"
+          title="Peticiones"
+          actions={<><button
             onClick={() => setModal(true)}
-            className="px-4 py-2 rounded text-sm font-medium bg-cartistry-cta text-cartistry-cta-text hover:opacity-90 transition"
+            className="inline-flex items-center justify-center gap-2 h-10 px-4 rounded-[2px] text-sm font-medium bg-ink text-surface hover:bg-[#282c33] transition-colors disabled:opacity-40 disabled:pointer-events-none"
           >
             + Nueva petición
-          </button>
-        </div>
-      </header>
+          </button></>}
+        />
 
-      <div className="max-w-5xl mx-auto px-6 py-8 space-y-5">
         {/* Filtros + resumen */}
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div className="flex flex-wrap gap-3">
@@ -252,7 +247,7 @@ export default function PeticionesPage() {
                       <div className="flex gap-2">
                         <button
                           onClick={() => resolver(p, 'aprobada')}
-                          className="px-3 py-1.5 rounded text-xs font-medium bg-cartistry-cta text-cartistry-cta-text hover:opacity-90 transition"
+                          className="inline-flex items-center justify-center gap-2 h-10 px-4 rounded-[2px] text-sm font-medium bg-ink text-surface hover:bg-[#282c33] transition-colors disabled:opacity-40 disabled:pointer-events-none"
                         >
                           Aprobar
                         </button>
@@ -298,7 +293,7 @@ export default function PeticionesPage() {
                   <select
                     value={fEmp}
                     onChange={(e) => setFEmp(e.target.value)}
-                    className="w-full px-3 py-2 bg-white border border-cartistry-border rounded text-sm text-cartistry-text focus:outline-none focus:ring-2 focus:ring-cartistry-accent"
+                    className="w-full px-3 py-2 bg-white border border-cartistry-border rounded text-sm text-cartistry-text focus:outline-none focus:shadow-[inset_0_0_0_2px_var(--ink)]"
                   >
                     <option value="">Selecciona…</option>
                     {empleados.map((e) => (
@@ -313,7 +308,7 @@ export default function PeticionesPage() {
                   <select
                     value={fTipo}
                     onChange={(e) => setFTipo(e.target.value)}
-                    className="w-full px-3 py-2 bg-white border border-cartistry-border rounded text-sm text-cartistry-text focus:outline-none focus:ring-2 focus:ring-cartistry-accent"
+                    className="w-full px-3 py-2 bg-white border border-cartistry-border rounded text-sm text-cartistry-text focus:outline-none focus:shadow-[inset_0_0_0_2px_var(--ink)]"
                   >
                     <option value="vacaciones">Vacaciones</option>
                     <option value="dia_libre">Día libre</option>
@@ -325,7 +320,7 @@ export default function PeticionesPage() {
                     type="date"
                     value={fIni}
                     onChange={(e) => setFIni(e.target.value)}
-                    className="w-full px-3 py-2 bg-white border border-cartistry-border rounded text-sm text-cartistry-text focus:outline-none focus:ring-2 focus:ring-cartistry-accent"
+                    className="w-full px-3 py-2 bg-white border border-cartistry-border rounded text-sm text-cartistry-text focus:outline-none focus:shadow-[inset_0_0_0_2px_var(--ink)]"
                   />
                 </div>
                 <div>
@@ -334,7 +329,7 @@ export default function PeticionesPage() {
                     type="date"
                     value={fFin}
                     onChange={(e) => setFFin(e.target.value)}
-                    className="w-full px-3 py-2 bg-white border border-cartistry-border rounded text-sm text-cartistry-text focus:outline-none focus:ring-2 focus:ring-cartistry-accent"
+                    className="w-full px-3 py-2 bg-white border border-cartistry-border rounded text-sm text-cartistry-text focus:outline-none focus:shadow-[inset_0_0_0_2px_var(--ink)]"
                   />
                 </div>
               </div>
@@ -345,7 +340,7 @@ export default function PeticionesPage() {
                   value={fMotivo}
                   onChange={(e) => setFMotivo(e.target.value)}
                   placeholder="Motivo de la petición"
-                  className="w-full px-3 py-2 bg-white border border-cartistry-border rounded text-sm text-cartistry-text focus:outline-none focus:ring-2 focus:ring-cartistry-accent"
+                  className="w-full px-3 py-2 bg-white border border-cartistry-border rounded text-sm text-cartistry-text focus:outline-none focus:shadow-[inset_0_0_0_2px_var(--ink)]"
                 />
               </div>
             </div>
@@ -353,14 +348,14 @@ export default function PeticionesPage() {
               <button
                 onClick={() => setModal(false)}
                 disabled={guardando}
-                className="px-4 py-2 rounded text-sm font-medium border border-cartistry-border text-cartistry-accent hover:bg-cartistry-bg transition disabled:opacity-50"
+                className="inline-flex items-center justify-center gap-2 h-10 px-4 rounded-[2px] text-sm font-medium bg-surface text-ink shadow-[inset_0_0_0_1px_var(--line)] hover:bg-sunk transition-colors disabled:opacity-40 disabled:pointer-events-none"
               >
                 Cancelar
               </button>
               <button
                 onClick={crear}
                 disabled={guardando}
-                className="px-4 py-2 rounded text-sm font-medium bg-cartistry-cta text-cartistry-cta-text hover:opacity-90 transition disabled:opacity-50"
+                className="inline-flex items-center justify-center gap-2 h-10 px-4 rounded-[2px] text-sm font-medium bg-ink text-surface hover:bg-[#282c33] transition-colors disabled:opacity-40 disabled:pointer-events-none"
               >
                 {guardando ? 'Guardando...' : 'Crear petición'}
               </button>
