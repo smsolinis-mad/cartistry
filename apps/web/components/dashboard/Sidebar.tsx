@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   BarChart3,
   Gauge,
@@ -17,7 +17,8 @@ import {
   X,
   type LucideIcon,
 } from 'lucide-react';
-import { clearUserCookie, getUserCookie } from '@/lib/auth';
+import { createClient } from '@/lib/supabase/client';
+import { clearSesion } from '@/lib/auth';
 import { Wordmark } from '@/components/landing/Wordmark';
 import { cx } from '@/components/ui';
 
@@ -147,9 +148,11 @@ export function Sidebar() {
   const [abierto, setAbierto] = useState(false);
   const [email, setEmail] = useState<string | null>(null);
 
+  const supabase = useMemo(() => createClient(), []);
+
   useEffect(() => {
-    setEmail(getUserCookie()?.email ?? null);
-  }, []);
+    supabase.auth.getUser().then(({ data }) => setEmail(data.user?.email ?? null));
+  }, [supabase]);
 
   // Al navegar, el panel móvil se cierra solo.
   useEffect(() => {
@@ -157,9 +160,12 @@ export function Sidebar() {
   }, [pathname]);
 
   const handleLogout = async () => {
-    clearUserCookie();
-    await new Promise((resolve) => setTimeout(resolve, 100));
-    router.push('/');
+    // signOut revoca la sesión en Supabase y borra las cookies; no basta con
+    // olvidarla en el navegador.
+    await supabase.auth.signOut();
+    clearSesion();
+    router.replace('/login');
+    router.refresh();
   };
 
   const isActive = (item: MenuItem) => {

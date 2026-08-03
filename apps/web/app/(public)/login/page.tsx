@@ -3,8 +3,8 @@
 import Link from 'next/link';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { v5 as uuidv5 } from 'uuid';
-import { setUserCookie } from '@/lib/auth';
+import { createClient } from '@/lib/supabase/client';
+import { mensajeDeError } from '@/lib/auth-errores';
 import { AuthShell } from '@/components/auth/AuthShell';
 import { Alert, Button, Field, Input } from '@/components/ui';
 
@@ -14,35 +14,32 @@ export default function LoginPage() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+  const supabase = createClient();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    setLoading(true);
 
-    try {
-      // Validación simple (TODO: conectar a Supabase cuando auth funcione)
-      if (!email || !password) {
-        setError('Escribe tu email y tu contraseña para entrar.');
-        return;
-      }
-
-      // Generar ID consistente basado en email
-      const userId = uuidv5(email, '6ba7b810-9dad-11d1-80b4-00c04fd430c8');
-
-      // Guardar sesión en cookie
-      setUserCookie({ id: userId, email, loggedIn: true });
-
-      // Pequeño delay para que la cookie se escriba
-      await new Promise((resolve) => setTimeout(resolve, 100));
-
-      router.push('/dashboard');
-    } catch (err) {
-      setError('No se ha podido iniciar sesión. Inténtalo otra vez.');
-      console.error(err);
-    } finally {
-      setLoading(false);
+    if (!email || !password) {
+      setError('Escribe tu email y tu contraseña para entrar.');
+      return;
     }
+
+    setLoading(true);
+    const { error: authError } = await supabase.auth.signInWithPassword({
+      email: email.trim(),
+      password,
+    });
+
+    if (authError) {
+      setError(mensajeDeError(authError.message));
+      setLoading(false);
+      return;
+    }
+
+    // `refresh` obliga al middleware a releer la cookie de sesión recién puesta.
+    router.replace('/dashboard');
+    router.refresh();
   };
 
   return (
